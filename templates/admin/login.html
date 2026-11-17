@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Login | {{ company_name }}{% endblock %}
+
+{% block content %}
+<section class="py-5 my-md-5">
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-5">
+        
+        <div class="search-card p-4 p-md-5">
+          <div class="text-center mb-4">
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="{{ company_name }}" class="img-fluid mb-3" style="max-height: 50px;">
+            <h2 class="font-heading fs-4 text-dark mb-1">Admin Portal Access</h2>
+            <div class="gold-divider"></div>
+            <p class="text-muted small">Sign in to manage properties, leads, and customer bookings.</p>
+          </div>
+
+          <form action="{{ url_for('admin_login') }}" method="POST">
+            <div class="mb-3">
+              <label class="form-label-custom">Username</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border text-gold"><i class="fas fa-user"></i></span>
+                <input type="text" name="username" class="form-control form-control-custom" placeholder="admin" required autofocus>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label-custom">Password</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light border text-gold"><i class="fas fa-lock"></i></span>
+                <input type="password" name="password" class="form-control form-control-custom" placeholder="••••••••" required>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-gold w-100 py-3">
+              <i class="fas fa-sign-in-alt me-2"></i> Secure Login
+            </button>
+          </form>
+
+          <div class="mt-4 p-3 bg-light rounded border text-center">
+            <small class="text-muted d-block">Default Demonstration Credentials:</small>
+            <span class="text-gold-light fw-bold small">Username: <code>admin</code> | Password: <code>admin123</code></span>
+          </div>
+
+          <div class="text-center mt-4">
+            <a href="{{ url_for('index') }}" class="text-muted small">&larr; Return to Public Website</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

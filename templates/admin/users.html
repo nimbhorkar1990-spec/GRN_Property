@@ -1,0 +1,861 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}User Management & Access Control | Admin Portal - {{ company_name }}{% endblock %}
+
+{% block admin_content %}
+<!-- Header & Quick Actions -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <h1 class="font-heading fs-3 text-dark mb-1">
+      <i class="fas fa-users-cog text-gold me-2"></i>Centralized User & Account Control
+    </h1>
+    <p class="text-muted small mb-0">
+      Super Admin authority over all Real Estate Agents and Property Owner accounts, granular permissions, quotas, and
+      monitoring.
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <button type="button" class="btn btn-gold btn-sm" data-bs-toggle="modal" data-bs-target="#createUserModal">
+      <i class="fas fa-user-plus me-1"></i> Create New Account
+    </button>
+    <a href="{{ url_for('admin_export_excel') }}" class="btn btn-success btn-sm">
+      <i class="fas fa-file-excel me-1"></i> Master Excel (.xlsx)
+    </a>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-gold btn-sm">
+      <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- Admin KPI Cards for User Management -->
+<div class="row g-3 mb-4">
+  <!-- Total Accounts -->
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-icon bg-light text-gold border">
+          <i class="fas fa-users"></i>
+        </div>
+      </div>
+      <div class="stat-number">{{ stats.total_managed }}</div>
+      <small class="text-muted">Agents & Owners</small>
+    </div>
+  </div>
+
+  <!-- Agents -->
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-label">Agents</div>
+        <div class="stat-icon bg-info bg-opacity-10 text-info border border-info">
+          <i class="fas fa-user-tie"></i>
+        </div>
+      </div>
+      <div class="stat-number text-info">{{ stats.total_agents }}</div>
+      <small class="text-muted">Channel Partners</small>
+    </div>
+  </div>
+
+  <!-- Owners -->
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-label">Owners</div>
+        <div class="stat-icon bg-success bg-opacity-10 text-success border border-success">
+          <i class="fas fa-user-shield"></i>
+        </div>
+      </div>
+      <div class="stat-number text-success">{{ stats.total_owners }}</div>
+      <small class="text-muted">Property Owners</small>
+    </div>
+  </div>
+
+  <!-- Active Accounts -->
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-label">Active</div>
+        <div class="stat-icon bg-success bg-opacity-10 text-success border border-success">
+          <i class="fas fa-check-circle"></i>
+        </div>
+      </div>
+      <div class="stat-number text-success">{{ stats.active_users }}</div>
+      <small class="text-muted">Permitted Access</small>
+    </div>
+  </div>
+
+  <!-- Inactive / Suspended -->
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-label">Suspended</div>
+        <div class="stat-icon bg-danger bg-opacity-10 text-danger border border-danger">
+          <i class="fas fa-ban"></i>
+        </div>
+      </div>
+      <div class="stat-number text-danger">{{ stats.inactive_users }}</div>
+      <small class="text-muted">Access Blocked</small>
+    </div>
+  </div>
+
+  <!-- User Properties -->
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-label">User Ads</div>
+        <div class="stat-icon bg-gold-glow text-gold border border-gold">
+          <i class="fas fa-home"></i>
+        </div>
+      </div>
+      <div class="stat-number text-gold">{{ stats.user_properties }}</div>
+      <small class="text-muted">Total Posted Ads</small>
+    </div>
+  </div>
+</div>
+
+<!-- Default User Limits & Quotas Configuration -->
+<div class="admin-card p-4 mb-4 shadow-sm border">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3 border-bottom pb-3">
+    <div>
+      <h2 class="font-heading fs-5 text-dark mb-1">
+        <i class="fas fa-sliders-h text-gold me-2"></i>Default User Limits Configuration
+      </h2>
+      <p class="text-muted small mb-0">
+        Configure system-wide default resource limits automatically assigned to new users. Existing users without custom overrides will stay synced with these defaults.
+      </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <form method="POST" action="{{ url_for('admin_users_default_limits_reset') }}" onsubmit="return confirm('Are you sure you want to reset default limits to standard values (10 Listings, 100 Enquiries, 10 Photos, 2 Videos)?');" class="d-inline">
+        <button type="submit" class="btn btn-outline-secondary btn-sm" id="btnResetDefaultLimits">
+          <i class="fas fa-undo me-1"></i> Reset to Default
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <form method="POST" action="{{ url_for('admin_users_default_limits') }}" id="defaultLimitsForm">
+    <div class="row g-3">
+      <!-- 1. Total Property Listings Allowed -->
+      <div class="col-xl-3 col-md-6">
+        <label class="form-label text-dark fw-semibold small mb-1" for="default_listings_limit">
+          <i class="fas fa-home text-gold me-1"></i>Default Total Property Listings Allowed
+        </label>
+        <div class="input-group input-group-sm">
+          <input type="number" id="default_listings_limit" name="default_listings_limit" class="form-control text-dark" value="{{ default_limits.listings_limit }}" min="-1" required>
+          <span class="input-group-text bg-light text-muted small">ads (-1: unlim)</span>
+        </div>
+        <div class="form-text text-muted" style="font-size: 0.72rem;">Maximum active listings users can create.</div>
+      </div>
+
+      <!-- 2. Monthly Enquiries Access Allowed -->
+      <div class="col-xl-3 col-md-6">
+        <label class="form-label text-dark fw-semibold small mb-1" for="default_monthly_enquiries_limit">
+          <i class="fas fa-envelope-open-text text-info me-1"></i>Default Monthly Enquiries Access Allowed
+        </label>
+        <div class="input-group input-group-sm">
+          <input type="number" id="default_monthly_enquiries_limit" name="default_monthly_enquiries_limit" class="form-control text-dark" value="{{ default_limits.monthly_enquiries_limit }}" min="-1" required>
+          <span class="input-group-text bg-light text-muted small">leads / mo</span>
+        </div>
+        <div class="form-text text-muted" style="font-size: 0.72rem;">Resets automatically on 1st of every month.</div>
+      </div>
+
+      <!-- 3. Photos Allowed Per Listing -->
+      <div class="col-xl-3 col-md-6">
+        <label class="form-label text-dark fw-semibold small mb-1" for="default_photos_limit">
+          <i class="fas fa-images text-success me-1"></i>Default Photos Allowed Per Listing
+        </label>
+        <div class="input-group input-group-sm">
+          <input type="number" id="default_photos_limit" name="default_photos_limit" class="form-control text-dark" value="{{ default_limits.photos_limit }}" min="1" max="100" required>
+          <span class="input-group-text bg-light text-muted small">photos / ad</span>
+        </div>
+        <div class="form-text text-muted" style="font-size: 0.72rem;">Maximum gallery images per property ad.</div>
+      </div>
+
+      <!-- 4. Short Videos Allowed Per Listing -->
+      <div class="col-xl-3 col-md-6">
+        <label class="form-label text-dark fw-semibold small mb-1" for="default_videos_limit">
+          <i class="fas fa-video text-danger me-1"></i>Default Short Videos Allowed Per Listing
+        </label>
+        <div class="input-group input-group-sm">
+          <input type="number" id="default_videos_limit" name="default_videos_limit" class="form-control text-dark" value="{{ default_limits.videos_limit }}" min="0" max="20" required>
+          <span class="input-group-text bg-light text-muted small">videos / ad</span>
+        </div>
+        <div class="form-text text-muted" style="font-size: 0.72rem;">Maximum short videos allowed per property ad.</div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mt-3 pt-2 border-top">
+      <button type="submit" class="btn btn-gold btn-sm px-4" id="btnSaveDefaultLimits">
+        <i class="fas fa-save me-1"></i> Save / Update Default Limits
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Search & Filtering Bar -->
+<div class="admin-card p-3 mb-4">
+  <form method="GET" action="{{ url_for('admin_users') }}" class="row g-2 align-items-center">
+    <div class="col-lg-5 col-md-6">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-light border text-gold"><i class="fas fa-search"></i></span>
+        <input type="text" name="q" class="form-control bg-white border text-dark"
+          placeholder="Search by name, username, email, phone, agency, MahaRERA..." value="{{ search_query or '' }}">
+      </div>
+    </div>
+
+    <div class="col-lg-3 col-md-3">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-light border text-gold">Role</span>
+        <select name="role" class="form-select bg-white border text-dark">
+          <option value="All" {% if selected_role=='All' %}selected{% endif %}>All Roles</option>
+          <option value="agent" {% if selected_role=='agent' %}selected{% endif %}>Agents Only</option>
+          <option value="owner" {% if selected_role=='owner' %}selected{% endif %}>Property Owners Only</option>
+          <option value="admin" {% if selected_role=='admin' %}selected{% endif %}>Admins Only</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="col-lg-2 col-md-3">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-light border text-gold">Status</span>
+        <select name="status" class="form-select bg-white border text-dark">
+          <option value="All" {% if selected_status=='All' %}selected{% endif %}>All Status</option>
+          <option value="active" {% if selected_status=='active' %}selected{% endif %}>Active</option>
+          <option value="inactive" {% if selected_status=='inactive' %}selected{% endif %}>Inactive / Suspended</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="col-lg-2 d-flex gap-2">
+      <button type="submit" class="btn btn-gold btn-sm w-100">
+        <i class="fas fa-filter me-1"></i> Filter
+      </button>
+      <a href="{{ url_for('admin_users') }}" class="btn btn-outline-secondary btn-sm" title="Clear Filters">
+        <i class="fas fa-undo"></i>
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- Users Master Table -->
+<div class="admin-card">
+  <div class="admin-card-header d-flex justify-content-between align-items-center">
+    <h3 class="admin-card-title">
+      <i class="fas fa-id-badge text-gold me-2"></i>Managed Accounts ({{ users|length }})
+    </h3>
+    <span class="badge bg-light border text-dark small">
+      Super Admin Access Only
+    </span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table admin-table align-middle">
+      <thead>
+        <tr>
+          <th>User / Agency</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Quota & Limits</th>
+          <th>Permissions & Authorities</th>
+          <th>Activity</th>
+          <th class="text-end">Admin Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if users %}
+        {% for u in users %}
+        <tr>
+          <!-- 1. User & Contact -->
+          <td>
+            <div class="d-flex align-items-center">
+              <div class="rounded-circle d-flex align-items-center justify-content-center me-3 border"
+                style="width: 40px; height: 40px; background: #F1F5F9; font-weight: bold; color: #D4AF37;">
+                {{ (u.full_name or u.username)[:2]|upper }}
+              </div>
+              <div>
+                <div class="fw-bold text-dark d-flex align-items-center gap-2">
+                  {{ u.full_name or u.username }}
+                  {% if u.id == 1 or u.username == 'admin' %}
+                  <span class="badge bg-gold text-black fw-bold" style="font-size: 0.65rem;">ROOT ADMIN</span>
+                  {% endif %}
+                </div>
+                <div class="small text-muted">
+                  <i class="fas fa-user-tag me-1"></i>@{{ u.username }} &bull;
+                  <i class="fas fa-envelope ms-1 me-1"></i>{{ u.email or 'No email' }}
+                </div>
+                {% if u.phone %}
+                <div class="small text-muted">
+                  <i class="fas fa-phone-alt me-1 text-gold"></i>{{ u.phone }}
+                </div>
+                {% endif %}
+                {% if u.agency_name or u.rera_number %}
+                <div class="small text-warning mt-1">
+                  {% if u.agency_name %}<i class="fas fa-briefcase me-1"></i>{{ u.agency_name }}{% endif %}
+                  {% if u.rera_number %}<span class="ms-1">(RERA: {{ u.rera_number }})</span>{% endif %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+
+          <!-- 2. Role -->
+          <td>
+            {% if u.role == 'admin' %}
+            <span class="badge badge-role-admin"><i class="fas fa-crown me-1"></i>Administrator</span>
+            {% elif u.role == 'agent' %}
+            <span class="badge badge-role-agent"><i class="fas fa-user-tie me-1"></i>Agent</span>
+            {% else %}
+            <span class="badge badge-role-owner"><i class="fas fa-user me-1"></i>Property Owner</span>
+            {% endif %}
+          </td>
+
+          <!-- 3. Status -->
+          <td>
+            {% if u.status == 'active' %}
+            <span class="badge badge-status-active">
+              <i class="fas fa-circle text-success me-1" style="font-size: 0.5rem;"></i>Active
+            </span>
+            {% else %}
+            <span class="badge badge-status-inactive">
+              <i class="fas fa-ban text-danger me-1"></i>Suspended
+            </span>
+            {% endif %}
+          </td>
+
+          <!-- 4. Quota & Limits -->
+          <td style="min-width: 195px;">
+            <div class="small mb-1 d-flex justify-content-between">
+              <span class="text-muted">Listings:</span>
+              <span class="fw-bold {% if u.effective_listing_limit != -1 and u.active_properties_count >= u.effective_listing_limit %}text-danger{% else %}text-gold{% endif %}">
+                {{ u.active_properties_count or 0 }} / {% if u.effective_listing_limit == -1 %}Unlimited{% else %}{{ u.effective_listing_limit }}{% endif %}
+              </span>
+            </div>
+            {% if u.effective_listing_limit != -1 and u.effective_listing_limit > 0 %}
+            {% set pct = (u.active_properties_count or 0) * 100 / u.effective_listing_limit %}
+            <div class="progress-limit {% if pct >= 100 %}near-limit{% endif %} mb-1">
+              <div class="progress-bar" style="width: {{ pct if pct <= 100 else 100 }}%;"></div>
+            </div>
+            {% endif %}
+            <div class="small mb-1 d-flex justify-content-between">
+              <span class="text-muted">Enquiries (Mo):</span>
+              <span class="fw-bold {% if u.effective_monthly_enquiries_limit != -1 and (u.monthly_enquiries_used or 0) >= u.effective_monthly_enquiries_limit %}text-danger{% else %}text-info{% endif %}">
+                {{ u.monthly_enquiries_used or 0 }} / {% if u.effective_monthly_enquiries_limit == -1 %}Unlimited{% else %}{{ u.effective_monthly_enquiries_limit }}{% endif %}
+              </span>
+            </div>
+            <div class="small text-muted d-flex justify-content-between mb-1" style="font-size: 0.75rem;">
+              <span><i class="fas fa-camera me-1 text-secondary"></i>Photos: <strong>{{ u.effective_photos_limit or 10 }}</strong>/ad</span>
+              <span><i class="fas fa-video me-1 text-secondary"></i>Videos: <strong>{{ u.effective_videos_limit or 2 }}</strong>/ad</span>
+            </div>
+            <div>
+              {% if u.has_custom_limits %}
+              <span class="badge bg-warning text-dark border border-warning" style="font-size: 0.65rem;">
+                <i class="fas fa-user-edit me-1"></i>Custom Limits
+              </span>
+              {% else %}
+              <span class="badge bg-light text-muted border" style="font-size: 0.65rem;">
+                <i class="fas fa-globe me-1"></i>Default Limits
+              </span>
+              {% endif %}
+            </div>
+          </td>
+
+          <!-- 5. Granular Permissions -->
+          <td style="max-width: 240px;">
+            <div class="d-flex flex-wrap gap-1">
+              <span class="permission-pill {% if u.can_post_ads %}enabled{% else %}disabled{% endif %}"
+                title="Can Post Ads">
+                <i class="fas {% if u.can_post_ads %}fa-check text-success{% else %}fa-times text-muted{% endif %}"></i>
+                Post
+              </span>
+              <span class="permission-pill {% if u.can_edit_ads %}enabled{% else %}disabled{% endif %}"
+                title="Can Edit Ads">
+                <i class="fas {% if u.can_edit_ads %}fa-check text-success{% else %}fa-times text-muted{% endif %}"></i>
+                Edit
+              </span>
+              <span class="permission-pill {% if u.can_delete_ads %}enabled{% else %}disabled{% endif %}"
+                title="Can Delete Ads">
+                <i
+                  class="fas {% if u.can_delete_ads %}fa-check text-success{% else %}fa-times text-muted{% endif %}"></i>
+                Delete
+              </span>
+              <span class="permission-pill {% if u.can_access_crm %}enabled{% else %}disabled{% endif %}"
+                title="Can Access CRM Leads">
+                <i
+                  class="fas {% if u.can_access_crm %}fa-check text-success{% else %}fa-times text-muted{% endif %}"></i>
+                CRM
+              </span>
+              <span class="permission-pill {% if u.can_export_leads %}enabled{% else %}disabled{% endif %}"
+                title="Can Export Leads">
+                <i
+                  class="fas {% if u.can_export_leads %}fa-check text-success{% else %}fa-times text-muted{% endif %}"></i>
+                Export
+              </span>
+              <span class="permission-pill {% if u.can_feature_properties %}enabled{% else %}disabled{% endif %}"
+                title="Can Feature Properties">
+                <i
+                  class="fas {% if u.can_feature_properties %}fa-check text-success{% else %}fa-times text-muted{% endif %}"></i>
+                Featured
+              </span>
+              <span class="permission-pill {% if u.can_manage_feedback %}enabled{% else %}disabled{% endif %}"
+                title="Can Manage Feedback">
+                <i
+                  class="fas {% if u.can_manage_feedback %}fa-check text-success{% else %}fa-times text-muted{% endif %}"></i>
+                Feedback
+              </span>
+            </div>
+          </td>
+
+          <!-- 6. Activity Stats -->
+          <td>
+            <div class="small text-dark">
+              <i class="fas fa-building text-gold me-1"></i><strong>{{ u.properties_count or 0 }}</strong> Ads Total
+            </div>
+            <div class="small text-dark">
+              <i class="fas fa-user-friends text-info me-1"></i><strong>{{ u.enquiries_count or 0 }}</strong> Leads
+            </div>
+            <div class="small text-muted mt-1" style="font-size: 0.75rem;">
+              Last Login:
+              {% if u.last_login %}
+              <span class="text-dark">{{ u.last_login[:16] }}</span>
+              {% else %}
+              <span class="text-secondary">Never</span>
+              {% endif %}
+            </div>
+          </td>
+
+          <!-- 7. Actions -->
+          <td class="text-end">
+            <div class="btn-group btn-group-sm">
+              <!-- Monitor Details -->
+              <a href="{{ url_for('admin_user_monitor', user_id=u.id) }}"
+                class="btn btn-dark border-secondary text-info" title="Monitor Account Activity & Listings">
+                <i class="fas fa-chart-line"></i>
+              </a>
+
+              <!-- Edit Permissions & Limits -->
+              <button type="button" class="btn btn-dark border-secondary text-gold" data-bs-toggle="modal"
+                data-bs-target="#editUserModal_{{ u.id }}" title="Edit Permissions, Limits & Role">
+                <i class="fas fa-user-shield"></i>
+              </button>
+
+              <!-- Activate / Deactivate Toggle -->
+              {% if u.id != 1 and u.username != 'admin' %}
+              <form method="POST" action="{{ url_for('admin_user_status', user_id=u.id) }}" class="d-inline"
+                onsubmit="return confirm('Are you sure you want to {% if u.status == 'active' %}DEACTIVATE and revoke access for{% else %}ACTIVATE{% endif %} user {{ u.username }}?');">
+                <input type="hidden" name="status"
+                  value="{% if u.status == 'active' %}inactive{% else %}active{% endif %}">
+                <button type="submit"
+                  class="btn btn-dark border-secondary {% if u.status == 'active' %}text-warning{% else %}text-success{% endif %}"
+                  title="{% if u.status == 'active' %}Suspend / Deactivate User{% else %}Activate User{% endif %}">
+                  <i class="fas {% if u.status == 'active' %}fa-user-slash{% else %}fa-user-check{% endif %}"></i>
+                </button>
+              </form>
+
+              <!-- Delete User -->
+              <form method="POST" action="{{ url_for('admin_user_delete', user_id=u.id) }}" class="d-inline"
+                onsubmit="return confirm('DANGER: Are you sure you want to permanently delete user {{ u.username }}? Their properties will be preserved under master admin.');">
+                <button type="submit" class="btn btn-dark border-secondary text-danger" title="Delete Account">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+
+        <!-- EDIT USER MODAL FOR EACH USER -->
+        <div class="modal fade modal-admin" id="editUserModal_{{ u.id }}" tabindex="-1"
+          aria-labelledby="editUserLabel_{{ u.id }}" aria-hidden="true">
+          <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title font-heading text-gold" id="editUserLabel_{{ u.id }}">
+                  <i class="fas fa-user-cog me-2"></i>Manage User: {{ u.full_name or u.username }} (@{{ u.username }})
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                  aria-label="Close"></button>
+              </div>
+
+              <form method="POST" action="{{ url_for('admin_user_edit', user_id=u.id) }}">
+                <div class="modal-body p-4">
+                  <!-- Basic Profile Information -->
+                  <h6 class="form-section-title">1. Account Information</h6>
+                  <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Full Name</label>
+                      <input type="text" name="full_name" class="form-control" value="{{ u.full_name or '' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Username</label>
+                      <input type="text" class="form-control" value="{{ u.username }}" disabled>
+                      <small class="text-muted" style="font-size: 0.72rem;">Usernames cannot be changed.</small>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Email Address</label>
+                      <input type="email" name="email" class="form-control" value="{{ u.email or '' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Phone Number</label>
+                      <input type="text" name="phone" class="form-control" value="{{ u.phone or '' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Account Role</label>
+                      <select name="role" class="form-select" {% if u.id==1 or u.username=='admin' %}disabled{% endif
+                        %}>
+                        <option value="agent" {% if u.role=='agent' %}selected{% endif %}>Real Estate Agent</option>
+                        <option value="owner" {% if u.role=='owner' %}selected{% endif %}>Property Owner</option>
+                        <option value="admin" {% if u.role=='admin' %}selected{% endif %}>Administrator</option>
+                      </select>
+                      {% if u.id == 1 or u.username == 'admin' %}
+                      <input type="hidden" name="role" value="admin">
+                      {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Account Status</label>
+                      <select name="status" class="form-select" {% if u.id==1 or u.username=='admin' %}disabled{% endif
+                        %}>
+                        <option value="active" {% if u.status=='active' %}selected{% endif %}>Active (Access Granted)
+                        </option>
+                        <option value="inactive" {% if u.status=='inactive' %}selected{% endif %}>Inactive / Suspended
+                          (Access Blocked)</option>
+                      </select>
+                      {% if u.id == 1 or u.username == 'admin' %}
+                      <input type="hidden" name="status" value="active">
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <!-- Agency & Verification -->
+                  <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Agency / Firm Name (Optional)</label>
+                      <input type="text" name="agency_name" class="form-control" value="{{ u.agency_name or '' }}">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">MahaRERA Registration Number (Optional)</label>
+                      <input type="text" name="rera_number" class="form-control" value="{{ u.rera_number or '' }}">
+                    </div>
+                  </div>
+
+                  <!-- Limits & Quotas -->
+                  <h6 class="form-section-title mt-4">2. Account Limits & Quotas</h6>
+                  <div class="form-check form-switch mb-3 p-2 bg-light rounded border">
+                    <input class="form-check-input ms-0 me-2" type="checkbox" name="has_custom_limits" id="custom_lim_{{ u.id }}" value="1" {% if u.has_custom_limits %}checked{% endif %}>
+                    <label class="form-check-label text-dark fw-semibold small" for="custom_lim_{{ u.id }}">
+                      Enable Custom User Limits (Override System Defaults)
+                    </label>
+                    <div class="text-muted small ps-4">When enabled, this user will retain their custom limits even if system defaults change. When disabled, this user automatically inherits and updates with default limits.</div>
+                  </div>
+                  <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Total Property Listings Allowed (-1 for Unlimited)</label>
+                      <input type="number" name="listing_limit" class="form-control" value="{{ u.effective_listing_limit if u.effective_listing_limit is not none else u.listing_limit }}" required min="-1">
+                      <small class="text-muted" style="font-size: 0.72rem;">Maximum active listings user can create.</small>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Monthly Enquiries Access Allowed (-1 for Unlimited)</label>
+                      <input type="number" name="monthly_enquiries_limit" class="form-control" value="{{ u.effective_monthly_enquiries_limit if u.effective_monthly_enquiries_limit is not none else (u.monthly_enquiries_limit or default_limits.monthly_enquiries_limit) }}" required min="-1">
+                      <small class="text-muted" style="font-size: 0.72rem;">Maximum enquiries accessible per month (resets on 1st).</small>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Photos Allowed Per Listing</label>
+                      <input type="number" name="photos_limit" class="form-control" value="{{ u.effective_photos_limit if u.effective_photos_limit is not none else (u.photos_limit or u.upload_limit or default_limits.photos_limit) }}" required min="1" max="100">
+                      <small class="text-muted" style="font-size: 0.72rem;">Maximum photos uploadable per listing.</small>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Short Videos Allowed Per Listing</label>
+                      <input type="number" name="videos_limit" class="form-control" value="{{ u.effective_videos_limit if u.effective_videos_limit is not none else (u.videos_limit if u.videos_limit is not none else default_limits.videos_limit) }}" required min="0" max="20">
+                      <small class="text-muted" style="font-size: 0.72rem;">Maximum short videos allowed per listing.</small>
+                    </div>
+                  </div>
+
+                  <!-- Granular Permissions -->
+                  <h6 class="form-section-title mt-4">3. Granular Module Permissions & Authority</h6>
+                  <div class="row g-2 mb-3 bg-light p-3 rounded border">
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="can_post_ads" id="edit_post_{{ u.id }}" {%
+                          if u.can_post_ads %}checked{% endif %}>
+                        <label class="form-check-label text-dark small" for="edit_post_{{ u.id }}">
+                          Allow Posting New Property Ads
+                        </label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="can_edit_ads" id="edit_edit_{{ u.id }}" {%
+                          if u.can_edit_ads %}checked{% endif %}>
+                        <label class="form-check-label text-dark small" for="edit_edit_{{ u.id }}">
+                          Allow Editing Existing Properties
+                        </label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="can_delete_ads" id="edit_del_{{ u.id }}"
+                          {% if u.can_delete_ads %}checked{% endif %}>
+                        <label class="form-check-label text-dark small" for="edit_del_{{ u.id }}">
+                          Allow Deleting Properties
+                        </label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="can_access_crm" id="edit_crm_{{ u.id }}"
+                          {% if u.can_access_crm %}checked{% endif %}>
+                        <label class="form-check-label text-dark small" for="edit_crm_{{ u.id }}">
+                          Allow CRM Pipeline & Leads Module
+                        </label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="can_export_leads" id="edit_exp_{{ u.id }}"
+                          {% if u.can_export_leads %}checked{% endif %}>
+                        <label class="form-check-label text-dark small" for="edit_exp_{{ u.id }}">
+                          Allow CSV Lead Data Export
+                        </label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="can_feature_properties"
+                          id="edit_feat_{{ u.id }}" {% if u.can_feature_properties %}checked{% endif %}>
+                        <label class="form-check-label text-dark small" for="edit_feat_{{ u.id }}">
+                          Allow Marking Properties as Featured
+                        </label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="can_manage_feedback"
+                          id="edit_fb_{{ u.id }}" {% if u.can_manage_feedback %}checked{% endif %}>
+                        <label class="form-check-label text-dark small" for="edit_fb_{{ u.id }}">
+                          Allow Feedback Module Access &amp; Management
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Password Reset & Admin Notes -->
+                  <h6 class="form-section-title mt-4">4. Security & Administrator Notes</h6>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Reset Password (Leave blank to keep unchanged)</label>
+                      <input type="password" name="new_password" class="form-control" placeholder="Enter new password">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label text-muted small">Admin Internal Notes</label>
+                      <textarea name="notes" class="form-control" rows="2"
+                        placeholder="Private notes about agreement, tier, or compliance...">{{ u.notes or '' }}</textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-gold btn-sm">
+                    <i class="fas fa-save me-1"></i> Save Changes & Enforce
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <!-- END EDIT USER MODAL -->
+
+        {% endfor %}
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center py-5">
+            <i class="fas fa-users-slash text-muted fs-1 mb-3 d-block"></i>
+            <h5 class="text-white">No user accounts found matching your filters.</h5>
+            <p class="text-muted small">Try clearing your search query or filter options.</p>
+            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-gold btn-sm mt-2">Reset Filters</a>
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CREATE NEW USER MODAL -->
+<div class="modal fade modal-admin" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title font-heading text-gold" id="createUserModalLabel">
+          <i class="fas fa-user-plus me-2"></i>Create New User / Agent Account
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form method="POST" action="{{ url_for('admin_user_create') }}">
+        <div class="modal-body p-4">
+          <!-- 1. Credentials & Identity -->
+          <h6 class="form-section-title">1. Account Credentials & Personal Details</h6>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label text-muted small">Full Name <span class="text-danger">*</span></label>
+              <input type="text" name="full_name" class="form-control" placeholder="e.g. Rahul Deshmukh" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-muted small">Username <span class="text-danger">*</span></label>
+              <input type="text" name="username" class="form-control" placeholder="e.g. rahul_realty" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-muted small">Email Address <span class="text-danger">*</span></label>
+              <input type="email" name="email" class="form-control" placeholder="e.g. rahul@example.com" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-muted small">Phone Number <span class="text-danger">*</span></label>
+              <input type="text" name="phone" class="form-control" placeholder="e.g. 9823012345" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-muted small">Initial Password <span class="text-danger">*</span></label>
+              <input type="password" name="password" class="form-control" placeholder="Minimum 6 characters" required
+                minlength="6">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label text-muted small">Role <span class="text-danger">*</span></label>
+              <select name="role" class="form-select" required>
+                <option value="agent" selected>Real Estate Agent</option>
+                <option value="owner">Property Owner</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label text-muted small">Status <span class="text-danger">*</span></label>
+              <select name="status" class="form-select" required>
+                <option value="active" selected>Active</option>
+                <option value="inactive">Inactive / Suspended</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 2. Agency & MahaRERA -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label text-muted small">Agency / Firm Name (For Agents)</label>
+              <input type="text" name="agency_name" class="form-control" placeholder="e.g. Pune Prime Properties">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-muted small">MahaRERA Number</label>
+              <input type="text" name="rera_number" class="form-control" placeholder="e.g. A52100012345">
+            </div>
+          </div>
+
+          <!-- 3. Quotas -->
+          <h6 class="form-section-title mt-4">2. Account Limits & Resource Quotas</h6>
+          <div class="form-check form-switch mb-3 p-2 bg-light rounded border">
+            <input class="form-check-input ms-0 me-2" type="checkbox" name="has_custom_limits" id="create_custom_lim" value="1">
+            <label class="form-check-label text-dark fw-semibold small" for="create_custom_lim">
+              Assign Custom Limits Override (Do not auto-sync with system defaults)
+            </label>
+            <div class="text-muted small ps-4">Leave unchecked to use system defaults and automatically inherit future default changes.</div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label text-muted small">Total Property Listings Allowed (-1 for Unlimited)</label>
+              <input type="number" name="listing_limit" class="form-control" value="{{ default_limits.listings_limit }}" required min="-1">
+              <small class="text-muted" style="font-size: 0.72rem;">Maximum active listings allowed.</small>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-muted small">Monthly Enquiries Access Allowed (-1 for Unlimited)</label>
+              <input type="number" name="monthly_enquiries_limit" class="form-control" value="{{ default_limits.monthly_enquiries_limit }}" required min="-1">
+              <small class="text-muted" style="font-size: 0.72rem;">Maximum enquiries accessible per month.</small>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-muted small">Photos Allowed Per Listing</label>
+              <input type="number" name="photos_limit" class="form-control" value="{{ default_limits.photos_limit }}" required min="1" max="100">
+              <small class="text-muted" style="font-size: 0.72rem;">Maximum photos uploadable per listing.</small>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-muted small">Short Videos Allowed Per Listing</label>
+              <input type="number" name="videos_limit" class="form-control" value="{{ default_limits.videos_limit }}" required min="0" max="20">
+              <small class="text-muted" style="font-size: 0.72rem;">Maximum short videos allowed per listing.</small>
+            </div>
+          </div>
+
+          <!-- 4. Granular Permissions -->
+          <h6 class="form-section-title mt-4">3. Assign Initial Permissions & Authorities</h6>
+          <div class="row g-2 mb-3 bg-light p-3 rounded border">
+            <div class="col-md-6">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="can_post_ads" id="create_post" checked>
+                <label class="form-check-label text-dark small" for="create_post">
+                  Allow Posting New Property Ads
+                </label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="can_edit_ads" id="create_edit" checked>
+                <label class="form-check-label text-dark small" for="create_edit">
+                  Allow Editing Existing Properties
+                </label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="can_delete_ads" id="create_del" checked>
+                <label class="form-check-label text-dark small" for="create_del">
+                  Allow Deleting Properties
+                </label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="can_access_crm" id="create_crm" checked>
+                <label class="form-check-label text-dark small" for="create_crm">
+                  Allow CRM Pipeline & Leads Module
+                </label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="can_export_leads" id="create_exp" checked>
+                <label class="form-check-label text-dark small" for="create_exp">
+                  Allow CSV Lead Data Export
+                </label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="can_feature_properties" id="create_feat">
+                <label class="form-check-label text-dark small" for="create_feat">
+                  Allow Marking Properties as Featured
+                </label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="can_manage_feedback" id="create_fb" checked>
+                <label class="form-check-label text-dark small" for="create_fb">
+                  Allow Feedback Module Access &amp; Management
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="mb-2">
+            <label class="form-label text-muted small">Admin Internal Notes</label>
+            <textarea name="notes" class="form-control" rows="2"
+              placeholder="Agreement notes, verification remarks, or restrictions..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold btn-sm">
+            <i class="fas fa-check-circle me-1"></i> Create User & Enforce
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

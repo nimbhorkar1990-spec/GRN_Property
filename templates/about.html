@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us | {{ company_name }} - Pune Real Estate Excellence{% endblock %}
+
+{% block content %}
+<!-- Banner -->
+<section class="py-5"
+  style="background: linear-gradient(180deg, #07080A 0%, #111318 100%); border-bottom: 1px solid rgba(212, 175, 55, 0.2);">
+  <div class="container py-3">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb small mb-2">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-gold">Home</a></li>
+        <li class="breadcrumb-item active text-white" aria-current="page">About Us</li>
+      </ol>
+    </nav>
+    <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Your Trusted Real Estate Partner</span>
+    <h1 class="font-heading display-5 mb-2">About {{ company_name }}</h1>
+    <div class="gold-divider-start"></div>
+  </div>
+</section>
+
+<!-- Company Introduction & Mission -->
+<section class="py-5" style="background-color: #0A0B0E;">
+  <div class="container py-4">
+    <div class="row g-5 align-items-center">
+      <div class="col-lg-6">
+        <div class="position-relative">
+          <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=80"
+            alt="{{ company_name }} Architecture" class="img-fluid rounded border border-secondary shadow-lg">
+          <div class="position-absolute bottom-0 end-0 bg-gold p-3 rounded m-3 text-black shadow-lg">
+            <h4 class="font-heading mb-0 fs-3">15+</h4>
+            <small class="fw-bold text-uppercase">Years of Excellence</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Who We Are</span>
+        <h2 class="font-heading fs-2 mb-3">Redefining Real Estate Consultation</h2>
+        <div class="gold-divider-start"></div>
+
+        <blockquote class="p-3 bg-light rounded border-start border-4 border-gold text-dark my-3 fst-italic">
+          "{{ company_name }} is committed to helping customers find the right residential and commercial properties. We
+          provide professional real estate consultation, property buying and selling assistance, and trusted channel
+          partner services."
+        </blockquote>
+
+        <p class="text-muted">
+          Founded with a clear vision to inject absolute integrity, market transparency, and elite advisory into the
+          real estate ecosystem, {{ company_name }} has established itself as one of the most trusted real estate
+          consultancy firms.
+        </p>
+        <p class="text-muted">
+          Headquartered near Balewadi High Street, we specialize in high-growth micro-markets spanning Wakad, Hinjewadi,
+          Baner, Balewadi, Pimple Saudagar, Tathawade, Ravet, Punawale, and prime urban corridors.
+        </p>
+
+        <div class="row g-3 mt-3">
+          {% if contact_settings.company_rera and contact_settings.company_rera.is_enabled and company_rera %}
+          <div class="col-sm-6">
+            <div class="d-flex align-items-center gap-3 p-3 bg-light rounded border">
+              <i class="fas fa-certificate text-gold fs-3"></i>
+              <div>
+                <strong class="text-dark d-block">MahaRERA Registered</strong>
+                <small class="text-muted">{{ company_rera }}</small>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          <div class="{% if contact_settings.company_rera and contact_settings.company_rera.is_enabled and company_rera %}col-sm-6{% else %}col-12{% endif %}">
+            <div class="d-flex align-items-center gap-3 p-3 bg-light rounded border">
+              <i class="fas fa-handshake text-gold fs-3"></i>
+              <div>
+                <strong class="text-dark d-block">Authorized Partner</strong>
+                <small class="text-muted">Top 30+ Builders</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Core Values & Pillars -->
+<section class="py-5" style="background-color: #0E1015;">
+  <div class="container py-4">
+    <div class="text-center mb-5">
+      <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Our Guiding Principles</span>
+      <h2 class="font-heading display-6 mb-2">The Pillars of {{ company_name }}</h2>
+      <div class="gold-divider"></div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-3 col-md-6">
+        <div class="feature-box text-center">
+          <div class="feature-box-icon mx-auto">
+            <i class="fas fa-balance-scale"></i>
+          </div>
+          <h4 class="font-heading fs-5 mb-2">Unwavering Integrity</h4>
+          <p class="text-muted small">
+            We provide impartial advice tailored solely to the buyer’s long-term financial health and residential
+            comfort.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="feature-box text-center">
+          <div class="feature-box-icon mx-auto">
+            <i class="fas fa-search-dollar"></i>
+          </div>
+          <h4 class="font-heading fs-5 mb-2">Price Transparency</h4>
+          <p class="text-muted small">
+            Zero hidden charges, direct-to-developer billing transparency, and guaranteed best price structures with
+            zero brokerage on new projects.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="feature-box text-center">
+          <div class="feature-box-icon mx-auto">
+            <i class="fas fa-file-signature"></i>
+          </div>
+          <h4 class="font-heading fs-5 mb-2">Title Scrutiny</h4>
+          <p class="text-muted small">
+            Every project in our portfolio is thoroughly vetted for clear ownership, commencement certificates,
+            environmental nod, and MahaRERA compliance.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="feature-box text-center">
+          <div class="feature-box-icon mx-auto">
+            <i class="fas fa-users-cog"></i>
+          </div>
+          <h4 class="font-heading fs-5 mb-2">End-to-End Handholding</h4>
+          <p class="text-muted small">
+            From your very first site visit to key handover, loan sanction, and interior design assistance, we stand by
+            your side.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pune Micro-Markets Expertise -->
+<section class="py-5" style="background-color: #0A0B0E;">
+  <div class="container py-4">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-6">
+        <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Local Market Mastery</span>
+        <h2 class="font-heading display-6 mb-3">Why Western Pune is Maharashtra's Growth Engine</h2>
+        <div class="gold-divider-start"></div>
+        <p class="text-muted">
+          Over the past decade, Western Pune has transformed into India's premier tech and residential powerhouse.
+          Bolstered by the massive Hinjewadi Rajiv Gandhi Infotech Park, the Mumbai-Pune Expressway, and the upcoming
+          Pune Metro Line 3, locations like Baner, Balewadi, Wakad, and Tathawade offer unrivaled capital appreciation
+          and rental yield.
+        </p>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          {% for loc in pune_locations %}
+          <span class="badge bg-light border text-dark p-2 px-3">{{ loc }}</span>
+          {% endfor %}
+        </div>
+        <div class="mt-4">
+          <a href="{{ url_for('properties') }}" class="btn btn-gold">
+            <i class="fas fa-search me-1"></i> Explore Available Properties
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="p-4 bg-light rounded border text-center">
+              <h3 class="font-heading text-gold mb-1">8.5%</h3>
+              <p class="text-muted small mb-0">Avg Commercial Rental Yield</p>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-4 bg-light rounded border text-center">
+              <h3 class="font-heading text-gold mb-1">12-15%</h3>
+              <p class="text-muted small mb-0">Annual Capital Appreciation</p>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-4 bg-light rounded border text-center">
+              <h3 class="font-heading text-gold mb-1">5 Lac+</h3>
+              <p class="text-muted small mb-0">Tech Professionals in Hinjewadi</p>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-4 bg-light rounded border text-center">
+              <h3 class="font-heading text-gold mb-1">20 Mins</h3>
+              <p class="text-muted small mb-0">Expressway to Navi Mumbai</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section class="py-5 text-center"
+  style="background: linear-gradient(135deg, #11141B 0%, #1B1F2A 100%); border-top: 1px solid rgba(212, 175, 55, 0.3);">
+  <div class="container py-4">
+    <h2 class="font-heading display-6 mb-3">Partner With Pune's Trusted Real Estate Experts</h2>
+    <p class="text-muted mx-auto mb-4" style="max-width: 600px;">
+      Allow our senior property advisors to shortlist prime properties tailored to your personal goals and family
+      preferences.
+    </p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <button class="btn btn-gold px-4 py-3" data-bs-toggle="modal" data-bs-target="#scheduleVisitModal">
+        <i class="fas fa-calendar-check me-2"></i> Book Free Consultation
+      </button>
+      {% if not contact_settings.company_phone or contact_settings.company_phone.is_enabled %}
+      <a href="tel:{{ company_phone_raw }}" class="btn btn-outline-gold px-4 py-3">
+        <i class="fas fa-phone-alt me-2"></i> Direct Call: {{ company_phone }}
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Terms & Conditions | {{ company_name }}{% endblock %}
+
+{% block content %}
+<section class="py-5" style="background: #07080A; border-bottom: 1px solid rgba(212, 175, 55, 0.2);">
+  <div class="container py-3">
+    <h1 class="font-heading display-6 mb-2">Terms and Conditions</h1>
+    <div class="gold-divider-start"></div>
+    <p class="text-muted mb-0">Effective Date: November 2026</p>
+  </div>
+</section>
+
+<section class="py-5" style="background-color: #0A0B0E;">
+  <div class="container">
+    <div class="search-card p-4 p-md-5">
+      <div class="text-light" style="line-height: 1.8;">
+        <h3 class="text-gold font-heading fs-4 mb-3">1. Scope of Services</h3>
+        <p class="text-muted">
+          {{ company_name }} acts as a certified real estate channel partner and consultant connecting prospective buyers, tenants, and investors with real estate projects across Pune.
+        </p>
+
+        <h3 class="text-gold font-heading fs-4 mb-3 mt-4">2. Accuracy of Property Information</h3>
+        <p class="text-muted">
+          Project specifications, floor plans, pricing estimates, and possession dates listed on this website are compiled from developer brochures and MahaRERA filings. While all efforts are made to keep information updated, prices and availability are subject to change by respective developers without prior notice.
+        </p>
+
+        <h3 class="text-gold font-heading fs-4 mb-3 mt-4">3. No Financial or Investment Guarantee</h3>
+        <p class="text-muted">
+          Real estate investments carry market risks. Yield calculations and capital appreciation projections shared in consultations are historical indicators and do not constitute a contractual guarantee.
+        </p>
+
+        <h3 class="text-gold font-heading fs-4 mb-3 mt-4">4. Intellectual Property</h3>
+        <p class="text-muted">
+          The branding, logo, web layout, and bespoke content of this website are the intellectual property of {{ company_name }}. Unauthorized duplication or reproduction is strictly prohibited.
+        </p>
+
+        <h3 class="text-gold font-heading fs-4 mb-3 mt-4">5. Jurisdiction</h3>
+        <p class="text-muted">
+          Any disputes arising from the use of our website or services shall be subject to the exclusive jurisdiction of the competent courts in Pune, Maharashtra.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

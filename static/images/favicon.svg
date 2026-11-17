@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="favGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F2D07C" />
+      <stop offset="50%" stop-color="#D4AF37" />
+      <stop offset="100%" stop-color="#9A7B2C" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0C0E12" />
+  <polygon points="32,6 56,32 32,58 8,32" fill="none" stroke="url(#favGold)" stroke-width="2" />
+  <!-- Monogram G R N Tower -->
+  <path d="M22 46 L22 24 L29 18 L29 46 Z" fill="url(#favGold)" opacity="0.85"/>
+  <path d="M30 46 L30 14 L36 10 L42 14 L42 46 Z" fill="url(#favGold)" />
+  <path d="M43 46 L43 24 L36 29 L43 46 Z" fill="url(#favGold)" opacity="0.7"/>
+  <polygon points="32,10 38,15 26,15" fill="#FFEBB0" />
+</svg>
+

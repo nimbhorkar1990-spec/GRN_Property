@@ -1,0 +1,678 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Website Visibility Management | {{ company_name }} Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .visibility-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+  }
+  [data-theme="luxury-dark"] .visibility-card,
+  [data-theme="royal-navy"] .visibility-card,
+  [data-theme="emerald-luxury"] .visibility-card,
+  [data-theme="ruby-prestige"] .visibility-card,
+  [data-theme="onyx-monochrome"] .visibility-card {
+    background: #111318;
+    border-color: rgba(212, 175, 55, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .stat-card-custom {
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .stat-card-custom:hover {
+    transform: translateY(-2px);
+  }
+
+  .cat-pill {
+    cursor: pointer;
+    border-radius: 20px;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 1px solid #cbd5e1;
+    background: transparent;
+    color: #475569;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  [data-theme*="dark"] .cat-pill,
+  [data-theme*="navy"] .cat-pill,
+  [data-theme*="emerald"] .cat-pill,
+  [data-theme*="ruby"] .cat-pill,
+  [data-theme*="onyx"] .cat-pill {
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #94a3b8;
+  }
+  .cat-pill.active, .cat-pill:hover {
+    background: #d4af37;
+    color: #000000 !important;
+    border-color: #d4af37;
+    font-weight: 600;
+  }
+
+  .form-switch .form-check-input {
+    width: 3rem;
+    height: 1.6rem;
+    cursor: pointer;
+  }
+  .form-switch .form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+  }
+
+  .status-badge-on {
+    background-color: rgba(25, 135, 84, 0.12);
+    color: #198754;
+    border: 1px solid rgba(25, 135, 84, 0.3);
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .status-badge-off {
+    background-color: rgba(220, 53, 69, 0.12);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .toast-container-custom {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1090;
+  }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="py-2">
+
+  <!-- Breadcrumbs & Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small mb-1">
+          <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}" class="text-gold">Admin</a></li>
+          <li class="breadcrumb-item active text-muted" aria-current="page">Website Visibility</li>
+        </ol>
+      </nav>
+      <h1 class="font-heading fs-3 mb-1 text-dark">
+        <i class="fas fa-sliders-h text-gold me-2"></i> Website Visibility Management
+      </h1>
+      <p class="text-muted small mb-0">
+        Control live public visibility of website navigation menus, landing pages, homepage blocks, property tools, and footer links.
+      </p>
+    </div>
+
+    <!-- Quick Action Buttons -->
+    <div class="d-flex flex-wrap gap-2">
+      <button type="button" class="btn btn-outline-success btn-sm px-3" data-bs-toggle="modal" data-bs-target="#confirmEnableAllModal">
+        <i class="fas fa-check-double me-1"></i> Enable All
+      </button>
+      <button type="button" class="btn btn-outline-danger btn-sm px-3" data-bs-toggle="modal" data-bs-target="#confirmDisableAllModal">
+        <i class="fas fa-ban me-1"></i> Disable All
+      </button>
+      <button type="button" class="btn btn-gold btn-sm px-3" data-bs-toggle="modal" data-bs-target="#addItemModal">
+        <i class="fas fa-plus me-1"></i> Add Custom Option
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Statistics Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="stat-card-custom bg-light border shadow-sm">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="text-muted small text-uppercase fw-bold d-block">Managed Items</span>
+            <h3 class="font-heading fs-4 mb-0 text-dark" id="statTotalCount">{{ stats.total }}</h3>
+          </div>
+          <div class="p-3 rounded-circle bg-white border text-gold fs-4">
+            <i class="fas fa-cubes"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="stat-card-custom bg-light border shadow-sm">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="text-muted small text-uppercase fw-bold d-block">Live & Visible</span>
+            <h3 class="font-heading fs-4 mb-0 text-success" id="statVisibleCount">{{ stats.visible }}</h3>
+          </div>
+          <div class="p-3 rounded-circle bg-white border text-success fs-4">
+            <i class="fas fa-eye"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="stat-card-custom bg-light border shadow-sm">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="text-muted small text-uppercase fw-bold d-block">Hidden / Disabled</span>
+            <h3 class="font-heading fs-4 mb-0 text-danger" id="statHiddenCount">{{ stats.hidden }}</h3>
+          </div>
+          <div class="p-3 rounded-circle bg-white border text-danger fs-4">
+            <i class="fas fa-eye-slash"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="stat-card-custom bg-light border shadow-sm">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="text-muted small text-uppercase fw-bold d-block">Categories</span>
+            <h3 class="font-heading fs-4 mb-0 text-gold">{{ stats.categories|length }}</h3>
+          </div>
+          <div class="p-3 rounded-circle bg-white border text-gold fs-4">
+            <i class="fas fa-layer-group"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter & Search Toolbar -->
+  <div class="visibility-card p-3 p-md-4 mb-4">
+    <div class="row g-3 align-items-center mb-3">
+      <!-- Live Search Keyword Input -->
+      <div class="col-md-6 col-lg-5">
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0 text-muted">
+            <i class="fas fa-search"></i>
+          </span>
+          <input type="text" id="visibilityFilterInput" class="form-control border-start-0" placeholder="Filter menus, pages, sections, or keys..." autocomplete="off">
+          <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn" title="Clear search">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Status Filter Dropdown -->
+      <div class="col-md-3 col-lg-3">
+        <select id="statusFilterSelect" class="form-select">
+          <option value="All">All Statuses (Visible & Hidden)</option>
+          <option value="1">Only Visible (ON)</option>
+          <option value="0">Only Hidden (OFF)</option>
+        </select>
+      </div>
+
+      <!-- Real-time Counters Info -->
+      <div class="col-md-3 col-lg-4 text-md-end text-muted small">
+        Showing <span id="displayedCount" class="fw-bold text-gold">{{ items|length }}</span> of <span class="fw-bold">{{ items|length }}</span> items
+      </div>
+    </div>
+
+    <!-- Category Filter Pills -->
+    <div class="d-flex flex-wrap gap-2 pt-2 border-top">
+      <button type="button" class="cat-pill active" data-category="All">
+        <i class="fas fa-th-large"></i> All Categories ({{ stats.total }})
+      </button>
+      {% for cat in stats.categories %}
+        <button type="button" class="cat-pill" data-category="{{ cat.category }}">
+          <span>{{ cat.category }}</span>
+          <span class="badge bg-secondary rounded-pill small">{{ cat.cat_total }}</span>
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Visibility Items Table Card -->
+  <div class="visibility-card">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" id="visibilityTable">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 5%;">#</th>
+            <th style="width: 25%;">Menu / Function Name</th>
+            <th style="width: 15%;">Category</th>
+            <th style="width: 18%;">URL / Target</th>
+            <th style="width: 12%; text-align: center;">Status</th>
+            <th style="width: 12%; text-align: center;">Visibility Toggle</th>
+            <th style="width: 13%;">Last Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+            <tr class="visibility-row" 
+                id="row-{{ item.item_key }}"
+                data-key="{{ item.item_key }}" 
+                data-name="{{ item.name|lower }}" 
+                data-category="{{ item.category }}" 
+                data-status="{{ item.is_visible }}" 
+                data-desc="{{ item.description|lower }}" 
+                data-url="{{ (item.url_path or '')|lower }}">
+              
+              <td class="text-muted small">{{ loop.index }}</td>
+
+              <!-- Name & Description -->
+              <td>
+                <div class="fw-bold text-dark fs-6">{{ item.name }}</div>
+                <div class="text-muted small lh-sm">{{ item.description }}</div>
+                <code class="small text-gold-light d-inline-block mt-1">{{ item.item_key }}</code>
+              </td>
+
+              <!-- Category Badge -->
+              <td>
+                {% if item.category == 'Header Navigation' %}
+                  <span class="badge bg-primary text-white"><i class="fas fa-compass me-1"></i>Header Nav</span>
+                {% elif item.category == 'Main Pages' %}
+                  <span class="badge bg-info text-dark"><i class="fas fa-file-alt me-1"></i>Main Pages</span>
+                {% elif item.category == 'Homepage Sections' %}
+                  <span class="badge bg-warning text-dark"><i class="fas fa-cube me-1"></i>Homepage</span>
+                {% elif item.category == 'Property Listings & Details' %}
+                  <span class="badge bg-success text-white"><i class="fas fa-building me-1"></i>Property Detail</span>
+                {% elif item.category == 'Forms & Tools' %}
+                  <span class="badge bg-danger text-white"><i class="fas fa-wrench me-1"></i>Forms & Tools</span>
+                {% elif item.category == 'Footer Menus & Links' %}
+                  <span class="badge bg-secondary text-white"><i class="fas fa-shoe-prints me-1"></i>Footer</span>
+                {% else %}
+                  <span class="badge bg-secondary text-white">{{ item.category }}</span>
+                {% endif %}
+              </td>
+
+              <!-- URL / Target -->
+              <td>
+                {% if item.url_path and not item.url_path.startswith('#') and item.url_path != 'Mobile Only' and item.url_path != 'All Pages' and item.url_path != 'Footer' %}
+                  <a href="{{ item.url_path }}" target="_blank" class="text-decoration-none small text-dark d-inline-flex align-items-center gap-1">
+                    <code>{{ item.url_path }}</code>
+                    <i class="fas fa-external-link-alt text-gold fa-xs"></i>
+                  </a>
+                {% else %}
+                  <span class="badge bg-light text-dark border small">{{ item.url_path or 'Internal' }}</span>
+                {% endif %}
+              </td>
+
+              <!-- Status Badge -->
+              <td class="text-center">
+                <span class="status-badge-container" id="status-badge-{{ item.item_key }}">
+                  {% if item.is_visible %}
+                    <span class="status-badge-on"><i class="fas fa-check-circle"></i> ON / Visible</span>
+                  {% else %}
+                    <span class="status-badge-off"><i class="fas fa-times-circle"></i> OFF / Hidden</span>
+                  {% endif %}
+                </span>
+              </td>
+
+              <!-- Interactive Toggle Switch -->
+              <td class="text-center">
+                <div class="form-check form-switch d-inline-block">
+                  <input class="form-check-input item-visibility-toggle" 
+                         type="checkbox" 
+                         role="switch" 
+                         id="toggle-{{ item.item_key }}" 
+                         data-key="{{ item.item_key }}" 
+                         data-name="{{ item.name }}"
+                         {% if item.is_visible %}checked{% endif %}>
+                </div>
+              </td>
+
+              <!-- Last Updated Date & By -->
+              <td class="small text-muted">
+                <div class="text-dark fw-medium" id="updated-by-{{ item.item_key }}">By: {{ item.updated_by or 'admin' }}</div>
+                <div class="text-muted" style="font-size: 0.75rem;" id="updated-at-{{ item.item_key }}">{{ item.updated_at[:16] if item.updated_at else 'Initial' }}</div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State if search finds no matches -->
+    <div id="noMatchesNotice" class="text-center p-5 d-none">
+      <i class="fas fa-search text-muted fs-1 mb-3"></i>
+      <h5 class="font-heading text-dark">No Matching Options Found</h5>
+      <p class="text-muted small mb-0">Try clearing your search query or selecting a different category.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: Confirm Enable All -->
+<div class="modal fade" id="confirmEnableAllModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title font-heading text-success">
+          <i class="fas fa-check-double me-2"></i> Enable All Options
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('admin_visibility_bulk') }}" method="POST">
+        <input type="hidden" name="action" value="enable_all">
+        <div class="modal-body p-4">
+          <p class="mb-2">Are you sure you want to turn <strong>ON</strong> all menus, pages, and functions?</p>
+          <div class="p-3 bg-light rounded border small text-muted">
+            <i class="fas fa-info-circle text-success me-1"></i> Every website section and direct URL route will be made immediately visible and accessible to public visitors.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success btn-sm px-4">
+            <i class="fas fa-check me-1"></i> Confirm & Enable All
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Confirm Disable All -->
+<div class="modal fade" id="confirmDisableAllModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title font-heading text-danger">
+          <i class="fas fa-exclamation-triangle me-2"></i> Disable All Options
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('admin_visibility_bulk') }}" method="POST">
+        <input type="hidden" name="action" value="disable_all">
+        <div class="modal-body p-4">
+          <p class="mb-2 text-danger fw-bold">Warning: You are about to turn OFF all website menus, sections, and pages!</p>
+          <p class="small text-muted mb-2">Public visitors will see a maintenance notice when attempting to access pages directly.</p>
+          <div class="p-3 bg-light rounded border small text-dark">
+            <i class="fas fa-shield-alt text-warning me-1"></i> <strong>Admin Preview Protection:</strong> Authenticated administrators will still be able to preview the site and re-enable options at any time.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger btn-sm px-4">
+            <i class="fas fa-ban me-1"></i> Confirm & Disable All
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Custom Visibility Item -->
+<div class="modal fade" id="addItemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title font-heading text-gold">
+          <i class="fas fa-plus-circle me-2"></i> Add Custom Menu or Function
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('admin_visibility_add') }}" method="POST">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Item Key (Unique Identifier) <span class="text-danger">*</span></label>
+            <input type="text" name="item_key" class="form-control" placeholder="e.g. nav_investors or section_partners" required pattern="[a-zA-Z0-9_\-]+" title="Letters, numbers, underscores and hyphens only">
+            <small class="text-muted">Use lowercase alphanumeric identifier.</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Menu / Function Name <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. Investor Relations Page" required>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">Category <span class="text-danger">*</span></label>
+              <select name="category" class="form-select" required>
+                <option value="Header Navigation">Header Navigation</option>
+                <option value="Main Pages">Main Pages</option>
+                <option value="Homepage Sections">Homepage Sections</option>
+                <option value="Property Listings & Details">Property Listings & Details</option>
+                <option value="Forms & Tools">Forms & Tools</option>
+                <option value="Footer Menus & Links">Footer Menus & Links</option>
+                <option value="Custom Extensions">Custom Extensions</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">URL / Target Path</label>
+              <input type="text" name="url_path" class="form-control" placeholder="e.g. /investors">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Description</label>
+            <textarea name="description" class="form-control" rows="2" placeholder="Briefly describe what this menu, section or function controls."></textarea>
+          </div>
+
+          <div class="form-check form-switch mt-2">
+            <input class="form-check-input" type="checkbox" role="switch" name="is_visible" id="newIsVisible" value="1" checked>
+            <label class="form-check-label small fw-bold ms-2" for="newIsVisible">Enable Visibility by Default (ON)</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold btn-sm px-4">
+            <i class="fas fa-save me-1"></i> Register Option
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification Container -->
+<div class="toast-container-custom">
+  <div id="visibilityToast" class="toast align-items-center text-white border-0 shadow-lg" style="background: #1e293b;" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body d-flex align-items-center gap-2">
+        <i id="toastIcon" class="fas fa-check-circle text-gold fs-5"></i>
+        <span id="toastMessage">Visibility setting updated.</span>
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const filterInput = document.getElementById('visibilityFilterInput');
+  const clearBtn = document.getElementById('clearSearchBtn');
+  const statusSelect = document.getElementById('statusFilterSelect');
+  const catPills = document.querySelectorAll('.cat-pill');
+  const rows = document.querySelectorAll('.visibility-row');
+  const noMatchesNotice = document.getElementById('noMatchesNotice');
+  const displayedCount = document.getElementById('displayedCount');
+
+  let activeCategory = 'All';
+  let activeStatus = 'All';
+  let searchQuery = '';
+
+  const toastEl = document.getElementById('visibilityToast');
+  const toastIcon = document.getElementById('toastIcon');
+  const toastMsg = document.getElementById('toastMessage');
+  const bsToast = new bootstrap.Toast(toastEl, { delay: 3500 });
+
+  function showToast(message, isSuccess = true) {
+    toastMsg.textContent = message;
+    if (isSuccess) {
+      toastIcon.className = 'fas fa-check-circle text-gold fs-5';
+    } else {
+      toastIcon.className = 'fas fa-exclamation-triangle text-danger fs-5';
+    }
+    bsToast.show();
+  }
+
+  // Filter Table function
+  function applyFilters() {
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const rowName = row.getAttribute('data-name');
+      const rowDesc = row.getAttribute('data-desc');
+      const rowKey = row.getAttribute('data-key').toLowerCase();
+      const rowUrl = row.getAttribute('data-url');
+      const rowCat = row.getAttribute('data-category');
+      const rowStat = row.getAttribute('data-status');
+
+      // Category matching
+      const matchesCategory = (activeCategory === 'All' || rowCat === activeCategory);
+
+      // Status matching
+      const matchesStatus = (activeStatus === 'All' || rowStat === activeStatus);
+
+      // Search matching
+      let matchesSearch = true;
+      if (searchQuery) {
+        const fullText = (rowName + ' ' + rowDesc + ' ' + rowKey + ' ' + rowUrl + ' ' + rowCat).toLowerCase();
+        matchesSearch = fullText.includes(searchQuery);
+      }
+
+      if (matchesCategory && matchesStatus && matchesSearch) {
+        row.classList.remove('d-none');
+        visibleCount++;
+      } else {
+        row.classList.add('d-none');
+      }
+    });
+
+    displayedCount.textContent = visibleCount;
+    if (visibleCount === 0) {
+      noMatchesNotice.classList.remove('d-none');
+    } else {
+      noMatchesNotice.classList.add('d-none');
+    }
+  }
+
+  // Category filter click
+  catPills.forEach(pill => {
+    pill.addEventListener('click', function() {
+      catPills.forEach(p => p.classList.remove('active'));
+      this.classList.add('active');
+      activeCategory = this.getAttribute('data-category');
+      applyFilters();
+    });
+  });
+
+  // Status select change
+  statusSelect.addEventListener('change', function() {
+    activeStatus = this.value;
+    applyFilters();
+  });
+
+  // Search input change
+  filterInput.addEventListener('input', function() {
+    searchQuery = this.value.trim().toLowerCase();
+    applyFilters();
+  });
+
+  // Clear button click
+  clearBtn.addEventListener('click', function() {
+    filterInput.value = '';
+    searchQuery = '';
+    applyFilters();
+    filterInput.focus();
+  });
+
+  // AJAX Toggle Switch Handler
+  const toggles = document.querySelectorAll('.item-visibility-toggle');
+  toggles.forEach(toggle => {
+    toggle.addEventListener('change', function() {
+      const itemKey = this.getAttribute('data-key');
+      const itemName = this.getAttribute('data-name');
+      const isChecked = this.checked;
+      const originalChecked = !isChecked;
+      const row = document.getElementById('row-' + itemKey);
+      const badgeContainer = document.getElementById('status-badge-' + itemKey);
+      const updatedByEl = document.getElementById('updated-by-' + itemKey);
+      const updatedAtEl = document.getElementById('updated-at-' + itemKey);
+
+      // Optimistic UI update
+      if (isChecked) {
+        badgeContainer.innerHTML = '<span class="status-badge-on"><i class="fas fa-check-circle"></i> ON / Visible</span>';
+        if (row) row.setAttribute('data-status', '1');
+      } else {
+        badgeContainer.innerHTML = '<span class="status-badge-off"><i class="fas fa-times-circle"></i> OFF / Hidden</span>';
+        if (row) row.setAttribute('data-status', '0');
+      }
+
+      // Send AJAX POST request to backend
+      fetch('{{ url_for("admin_visibility_toggle") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+          item_key: itemKey,
+          is_visible: isChecked ? 1 : 0
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Server returned ' + response.status);
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success) {
+          showToast(`"${itemName}" is now ${isChecked ? 'VISIBLE (ON)' : 'HIDDEN (OFF)'}.`, true);
+          if (updatedByEl) updatedByEl.textContent = 'By: ' + (data.updated_by || 'admin');
+          if (updatedAtEl) updatedAtEl.textContent = 'Just now';
+          
+          // Update summary counters
+          updateCounterSummary();
+        } else {
+          throw new Error(data.message || 'Failed to update setting');
+        }
+      })
+      .catch(err => {
+        console.error('Visibility toggle error:', err);
+        // Rollback toggle switch
+        toggle.checked = originalChecked;
+        if (originalChecked) {
+          badgeContainer.innerHTML = '<span class="status-badge-on"><i class="fas fa-check-circle"></i> ON / Visible</span>';
+          if (row) row.setAttribute('data-status', '1');
+        } else {
+          badgeContainer.innerHTML = '<span class="status-badge-off"><i class="fas fa-times-circle"></i> OFF / Hidden</span>';
+          if (row) row.setAttribute('data-status', '0');
+        }
+        showToast('Error: Failed to update visibility status. Please retry.', false);
+      });
+    });
+  });
+
+  function updateCounterSummary() {
+    let visible = 0;
+    let hidden = 0;
+    document.querySelectorAll('.visibility-row').forEach(r => {
+      if (r.getAttribute('data-status') === '1') {
+        visible++;
+      } else {
+        hidden++;
+      }
+    });
+    const statVis = document.getElementById('statVisibleCount');
+    const statHid = document.getElementById('statHiddenCount');
+    if (statVis) statVis.textContent = visible;
+    if (statHid) statHid.textContent = hidden;
+  }
+});
+</script>
+{% endblock %}

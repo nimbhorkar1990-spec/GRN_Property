@@ -1,0 +1,8 @@
+{
+  "recipient": "testadmin@grnproperties.com",
+  "sent_at": "2026-11-10 20:19:11",
+  "file": "Enquiry_Feedback_Report_20261110_201911.xlsx",
+  "size_bytes": 23770,
+  "sender": "admin",
+  "status": "Delivered (Local Outbox Archive - Configure live SMTP in Settings for external mail delivery)"
+}

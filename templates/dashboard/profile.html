@@ -1,0 +1,67 @@
+{% extends 'dashboard/base_user.html' %}
+
+{% block title %}My Profile | {{ company_name }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    
+    <div class="search-card p-4 p-md-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h1 class="font-heading fs-3 text-dark mb-1">My Account Profile</h1>
+          <p class="text-muted small mb-0">Update your public contact information displayed on your property ads.</p>
+        </div>
+        <span class="badge {% if user.role == 'agent' %}bg-gold text-black{% else %}bg-success{% endif %} text-uppercase p-2 px-3 fw-bold">
+          {{ user.role }}
+        </span>
+      </div>
+
+      <form action="{{ url_for('user_profile') }}" method="POST">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label-custom">Full Name <span class="text-danger">*</span></label>
+            <input type="text" name="full_name" class="form-control form-control-custom" value="{{ user.full_name or '' }}" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label-custom">Contact Mobile Number <span class="text-danger">*</span></label>
+            <input type="tel" name="phone" class="form-control form-control-custom" value="{{ user.phone or '' }}" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label-custom">Email Address <span class="text-danger">*</span></label>
+            <input type="email" name="email" class="form-control form-control-custom" value="{{ user.email or '' }}" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label-custom">Username</label>
+            <input type="text" class="form-control form-control-custom text-muted" value="{{ user.username }}" readonly disabled>
+          </div>
+
+          {% if user.role == 'agent' %}
+            <div class="col-md-6">
+              <label class="form-label-custom">Agency / Firm Name</label>
+              <input type="text" name="agency_name" class="form-control form-control-custom" value="{{ user.agency_name or '' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label-custom">MahaRERA Registration Number</label>
+              <input type="text" name="rera_number" class="form-control form-control-custom" value="{{ user.rera_number or '' }}">
+            </div>
+          {% endif %}
+
+          <div class="col-12 mt-4">
+            <button type="submit" class="btn btn-gold px-4 py-2">
+              <i class="fas fa-save me-1"></i> Update Profile Information
+            </button>
+          </div>
+        </div>
+      </form>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+

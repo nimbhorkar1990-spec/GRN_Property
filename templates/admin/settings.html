@@ -1,0 +1,1169 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Website & Contact Settings | Admin Portal - {{ company_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .settings-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+  }
+  [data-theme="luxury-dark"] .settings-card,
+  [data-theme="royal-navy"] .settings-card,
+  [data-theme="emerald-luxury"] .settings-card,
+  [data-theme="ruby-prestige"] .settings-card,
+  [data-theme="onyx-monochrome"] .settings-card {
+    background: #111318;
+    border-color: rgba(212, 175, 55, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .settings-tab-btn {
+    border-radius: 30px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.92rem;
+    border: 1px solid #cbd5e1;
+    background: transparent;
+    color: #475569;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+  }
+  [data-theme*="dark"] .settings-tab-btn,
+  [data-theme*="navy"] .settings-tab-btn,
+  [data-theme*="emerald"] .settings-tab-btn,
+  [data-theme*="ruby"] .settings-tab-btn,
+  [data-theme*="onyx"] .settings-tab-btn {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #cbd5e1;
+  }
+  .settings-tab-btn.active, .settings-tab-btn:hover {
+    background: #d4af37;
+    color: #000000 !important;
+    border-color: #d4af37;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+  }
+
+  .preview-box {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  [data-theme*="dark"] .preview-box,
+  [data-theme*="navy"] .preview-box,
+  [data-theme*="emerald"] .preview-box,
+  [data-theme*="ruby"] .preview-box,
+  [data-theme*="onyx"] .preview-box {
+    background: #1a1d24;
+    border-color: rgba(212, 175, 55, 0.3);
+  }
+
+  /* WhatsApp Simulation Card */
+  .wa-chat-container {
+    background: #efeae2;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #d1d7db;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  [data-theme*="dark"] .wa-chat-container,
+  [data-theme*="navy"] .wa-chat-container,
+  [data-theme*="emerald"] .wa-chat-container,
+  [data-theme*="ruby"] .wa-chat-container,
+  [data-theme*="onyx"] .wa-chat-container {
+    background: #0b141a;
+    border-color: #222d34;
+  }
+
+  .wa-header {
+    background: #075e54;
+    color: #ffffff;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  [data-theme*="dark"] .wa-header {
+    background: #202c33;
+  }
+  .wa-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #25d366;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 1.1rem;
+  }
+
+  .wa-body {
+    padding: 1.25rem 1rem;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .wa-bubble {
+    background: #d9fdd3;
+    color: #111b21;
+    border-radius: 8px 8px 0 8px;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.9rem;
+    box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+    position: relative;
+    align-self: flex-end;
+    max-width: 90%;
+    word-break: break-word;
+  }
+  [data-theme*="dark"] .wa-bubble {
+    background: #005c4b;
+    color: #e9edef;
+  }
+
+  .wa-bubble-time {
+    font-size: 0.7rem;
+    color: #667781;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    float: right;
+    margin-left: 0.5rem;
+    margin-top: 0.35rem;
+  }
+  [data-theme*="dark"] .wa-bubble-time {
+    color: #8696a0;
+  }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<!-- Breadcrumb & Page Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-1 small">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}" class="text-gold text-decoration-none">Admin Portal</a></li>
+        <li class="breadcrumb-item active text-muted" aria-current="page">Settings</li>
+      </ol>
+    </nav>
+    <h1 class="font-heading fs-3 text-dark mb-1">
+      <i class="fas fa-sliders-h text-gold me-2"></i>Website, Office & WhatsApp Settings
+    </h1>
+    <p class="text-muted small mb-0">Manage project branding, corporate & branch office locations, official contact channels, and WhatsApp consultation messages.</p>
+  </div>
+  <div class="d-flex gap-2 align-items-center">
+    <a href="{{ url_for('index') }}" target="_blank" class="btn btn-outline-gold btn-sm">
+      <i class="fas fa-external-link-alt me-1"></i> Preview Live Website
+    </a>
+  </div>
+</div>
+
+<!-- Settings Management Submenus Quick Bar -->
+<div class="card border-0 mb-4 shadow-sm" style="background: rgba(212, 175, 55, 0.06); border: 1px solid rgba(212, 175, 55, 0.25) !important; border-radius: 12px;">
+  <div class="card-body p-3">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="fas fa-sliders-h text-gold"></i>
+        <span class="small fw-bold text-uppercase text-dark" style="letter-spacing: 0.5px;">Settings Submenus</span>
+      </div>
+      <small class="text-muted">Core operational modules organized under Settings</small>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{{ url_for('admin_pending_properties') }}" class="btn btn-sm btn-light border text-dark d-inline-flex align-items-center gap-2">
+        <i class="fas fa-clipboard-check text-warning"></i>
+        <span>1. Pending Approval</span>
+        {% if pending_approvals_count and pending_approvals_count > 0 %}
+        <span class="badge bg-warning text-dark">{{ pending_approvals_count }}</span>
+        {% endif %}
+      </a>
+      <a href="{{ url_for('admin_properties') }}" class="btn btn-sm btn-light border text-dark d-inline-flex align-items-center gap-2">
+        <i class="fas fa-building text-gold"></i>
+        <span>2. Properties</span>
+      </a>
+      <a href="{{ url_for('admin_users') }}" class="btn btn-sm btn-light border text-dark d-inline-flex align-items-center gap-2">
+        <i class="fas fa-users-cog text-info"></i>
+        <span>3. User Management</span>
+      </a>
+      <a href="{{ url_for('admin_feedback') }}" class="btn btn-sm btn-light border text-dark d-inline-flex align-items-center gap-2">
+        <i class="fas fa-comments text-primary"></i>
+        <span>4. Feedback</span>
+      </a>
+      <a href="{{ url_for('admin_visibility') }}" class="btn btn-sm btn-light border text-dark d-inline-flex align-items-center gap-2">
+        <i class="fas fa-eye text-success"></i>
+        <span>5. Website Visibility</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Navigation Tabs -->
+<div class="d-flex gap-2 mb-4 border-bottom pb-3 flex-wrap">
+  <a href="{{ url_for('admin_settings', tab='general') }}" 
+     class="settings-tab-btn {% if active_tab == 'general' %}active{% endif %}">
+    <i class="fas fa-globe"></i> Website General Settings
+  </a>
+  <a href="{{ url_for('admin_settings', tab='contact') }}" 
+     class="settings-tab-btn {% if active_tab == 'contact' %}active{% endif %}">
+    <i class="fas fa-map-marked-alt"></i> Office & Contact Settings
+  </a>
+  <a href="{{ url_for('admin_settings', tab='whatsapp') }}" 
+     class="settings-tab-btn {% if active_tab == 'whatsapp' %}active{% endif %}">
+    <i class="fab fa-whatsapp"></i> WhatsApp Message Settings
+  </a>
+</div>
+
+{% if active_tab == 'general' %}
+<!-- ========================================================================= -->
+<!-- SECTION 1: WEBSITE GENERAL SETTINGS                                       -->
+<!-- ========================================================================= -->
+<div class="row g-4">
+  <!-- Settings Form Column -->
+  <div class="col-lg-7">
+    <div class="settings-card p-4">
+      <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom">
+        <div class="d-flex align-items-center gap-2">
+          <div class="rounded-circle p-2 bg-warning bg-opacity-10 text-gold fs-5">
+            <i class="fas fa-building"></i>
+          </div>
+          <div>
+            <h5 class="font-heading mb-0 text-dark">Website General Settings</h5>
+            <small class="text-muted">Configure project/website branding across the portal</small>
+          </div>
+        </div>
+        <span class="badge bg-gold text-black fw-bold">Live Synced</span>
+      </div>
+
+      <div class="alert alert-info py-2 px-3 small mb-4" style="background-color: rgba(212, 175, 55, 0.1); border-left: 3px solid #d4af37;">
+        <i class="fas fa-info-circle text-gold me-1"></i>
+        Updating the <strong>Project / Website Name</strong> automatically reflects across your browser tab titles, header, logo text, footer copyright, about/contact sections, and default WhatsApp greetings without developer intervention.
+      </div>
+
+      <form method="POST" action="{{ url_for('admin_settings_general') }}" id="websiteNameForm">
+        <div class="mb-4">
+          <label for="website_name" class="form-label fw-bold text-dark">
+            Project / Website Name <span class="text-danger">*</span>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border"><i class="fas fa-globe text-gold"></i></span>
+            <input type="text" 
+                   class="form-control form-control-lg border" 
+                   id="website_name" 
+                   name="website_name" 
+                   value="{{ website_name }}" 
+                   placeholder="e.g. GRN Properties" 
+                   required
+                   autocomplete="off"
+                   oninput="updatePreview(this.value)">
+          </div>
+          <div class="form-text mt-2 text-muted small d-flex justify-content-between">
+            <span>Default System Name: <strong>{{ default_website_name }}</strong></span>
+            <span id="nameCharCount">{{ website_name|length }} characters</span>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap pt-3 border-top">
+          <button type="submit" name="action" value="save" class="btn btn-gold px-4 py-2 fw-semibold">
+            <i class="fas fa-save me-1"></i> Save / Update Website Name
+          </button>
+          <button type="submit" 
+                  name="action" 
+                  value="reset" 
+                  class="btn btn-outline-danger px-4 py-2"
+                  onclick="return confirm('Are you sure you want to reset the Website Name to default ({{ default_website_name }})?');">
+            <i class="fas fa-undo me-1"></i> Reset to Default
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Live Branding Preview Column -->
+  <div class="col-lg-5">
+    <div class="settings-card p-4">
+      <h6 class="font-heading text-dark mb-3">
+        <i class="fas fa-eye text-gold me-2"></i>Live Dynamic Branding Preview
+      </h6>
+      <p class="text-muted small mb-3">Verify how your website name appears to visitors across key touchpoints:</p>
+
+      <!-- 1. Browser Tab Title Preview -->
+      <div class="mb-3">
+        <small class="text-muted fw-bold d-block mb-1">Browser Tab Title</small>
+        <div class="preview-box d-flex align-items-center gap-2">
+          <img src="{{ url_for('static', filename='images/favicon.svg') }}" style="width: 16px; height: 16px;">
+          <span class="small text-truncate" id="previewTabTitle">
+            <span class="preview-site-name">{{ website_name }}</span> | Premier Real Estate Portal
+          </span>
+        </div>
+      </div>
+
+      <!-- 2. Header & Logo Preview -->
+      <div class="mb-3">
+        <small class="text-muted fw-bold d-block mb-1">Header & Logo Branding</small>
+        <div class="preview-box p-3 text-white rounded" style="background: #11141B;">
+          <div class="d-flex align-items-center gap-2">
+            <img src="{{ url_for('static', filename='images/logo.svg') }}?v={{ website_name|urlencode }}" 
+                 id="previewLogoImg" 
+                 alt="{{ website_name }}" 
+                 style="max-height: 40px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Footer Copyright Preview -->
+      <div class="mb-3">
+        <small class="text-muted fw-bold d-block mb-1">Footer Copyright Line</small>
+        <div class="preview-box small text-muted">
+          &copy; {{ current_year }} <strong class="text-gold preview-site-name">{{ website_name }}</strong>. All Rights Reserved. Crafted with excellence for Pune Real Estate.
+        </div>
+      </div>
+
+      <!-- 4. Contact & About Section Preview -->
+      <div>
+        <small class="text-muted fw-bold d-block mb-1">About Us & Advisory Header</small>
+        <div class="preview-box small">
+          <h6 class="font-heading mb-1 text-gold">About <span class="preview-site-name">{{ website_name }}</span></h6>
+          <p class="text-muted mb-0" style="font-size: 0.8rem;">
+            "We eliminate real estate uncertainty through transparent advisory, direct builder pricing, and end-to-end legal verification."
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% elif active_tab == 'contact' %}
+<!-- ========================================================================= -->
+<!-- SECTION 2: OFFICE & CONTACT SETTINGS                                      -->
+<!-- ========================================================================= -->
+<div class="row g-4">
+  <!-- Main Form Column -->
+  <div class="col-lg-8">
+    <div class="settings-card p-4 mb-4">
+      <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <div class="rounded-circle p-2 bg-warning bg-opacity-10 text-gold fs-5">
+            <i class="fas fa-map-marked-alt"></i>
+          </div>
+          <div>
+            <h5 class="font-heading mb-0 text-dark">Office & Contact Settings</h5>
+            <small class="text-muted">Manage company office addresses, phone, WhatsApp desk, email, timings, and map coordinates</small>
+          </div>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-gold btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#addCustomContactModal">
+            <i class="fas fa-plus me-1"></i> Add Additional Information
+          </button>
+        </div>
+      </div>
+
+      <div class="alert alert-info py-2 px-3 small mb-4" style="background-color: rgba(212, 175, 55, 0.1); border-left: 3px solid #d4af37;">
+        <i class="fas fa-info-circle text-gold me-1"></i>
+        Configure official company contact details below. You can <strong>enable or disable</strong> any field, update content, adjust display order, and add custom contact channels. Changes immediately reflect across your Contact Us page, Footer, Header, and consultation buttons.
+      </div>
+
+      <form method="POST" action="{{ url_for('admin_settings_contact') }}" id="contactSettingsForm">
+        <input type="hidden" name="action" value="save">
+
+        <!-- 1. Corporate Office Address -->
+        <div class="card p-3 mb-3 border bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+              <i class="fas fa-map-marked-alt text-gold"></i>
+              Corporate Office Address <span class="text-danger">*</span>
+            </label>
+            <div class="d-flex align-items-center gap-3">
+              <div class="d-flex align-items-center gap-1">
+                <small class="text-muted">Order:</small>
+                <input type="number" name="order_corporate_office" class="form-control form-control-sm text-center" style="width: 65px;" value="{{ contact_dict.corporate_office.display_order if contact_dict.corporate_office else 10 }}">
+              </div>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="is_enabled_corporate_office" name="is_enabled_corporate_office" value="1" {% if not contact_dict.corporate_office or contact_dict.corporate_office.is_enabled %}checked{% endif %}>
+                <label class="form-check-label small fw-semibold" for="is_enabled_corporate_office">Enabled</label>
+              </div>
+            </div>
+          </div>
+          <textarea name="corporate_office" class="form-control border" rows="2" placeholder="Full office street address, landmark, city, pincode" required>{{ contact_dict.corporate_office.value if contact_dict.corporate_office else company_address }}</textarea>
+          <small class="text-muted mt-1 d-block">Appears on Contact Us page, Website Footer, and Advisor intake cards.</small>
+        </div>
+
+        <!-- 2. Call Us (Official Phone) -->
+        <div class="card p-3 mb-3 border bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+              <i class="fas fa-phone-alt text-gold"></i>
+              Call Us (Official Helpline Number) <span class="text-danger">*</span>
+            </label>
+            <div class="d-flex align-items-center gap-3">
+              <div class="d-flex align-items-center gap-1">
+                <small class="text-muted">Order:</small>
+                <input type="number" name="order_company_phone" class="form-control form-control-sm text-center" style="width: 65px;" value="{{ contact_dict.company_phone.display_order if contact_dict.company_phone else 20 }}">
+              </div>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="is_enabled_company_phone" name="is_enabled_company_phone" value="1" {% if not contact_dict.company_phone or contact_dict.company_phone.is_enabled %}checked{% endif %}>
+                <label class="form-check-label small fw-semibold" for="is_enabled_company_phone">Enabled</label>
+              </div>
+            </div>
+          </div>
+          <div class="input-group">
+            <span class="input-group-text bg-white border"><i class="fas fa-phone text-gold"></i></span>
+            <input type="text" name="company_phone" class="form-control border" value="{{ contact_dict.company_phone.value if contact_dict.company_phone else company_phone }}" placeholder="e.g. +91 7499077170" required>
+          </div>
+          <small class="text-muted mt-1 d-block">Direct calling enabled link: <code>tel:{{ company_phone_raw }}</code>. Displayed in Header, Contact, and Footer.</small>
+        </div>
+
+        <!-- 3. WhatsApp Desk -->
+        <div class="card p-3 mb-3 border bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+              <i class="fab fa-whatsapp text-success"></i>
+              WhatsApp Desk (Official WhatsApp Number) <span class="text-danger">*</span>
+            </label>
+            <div class="d-flex align-items-center gap-3">
+              <div class="d-flex align-items-center gap-1">
+                <small class="text-muted">Order:</small>
+                <input type="number" name="order_company_whatsapp" class="form-control form-control-sm text-center" style="width: 65px;" value="{{ contact_dict.company_whatsapp.display_order if contact_dict.company_whatsapp else 30 }}">
+              </div>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="is_enabled_company_whatsapp" name="is_enabled_company_whatsapp" value="1" {% if not contact_dict.company_whatsapp or contact_dict.company_whatsapp.is_enabled %}checked{% endif %}>
+                <label class="form-check-label small fw-semibold" for="is_enabled_company_whatsapp">Enabled</label>
+              </div>
+            </div>
+          </div>
+          <div class="input-group">
+            <span class="input-group-text bg-white border"><i class="fab fa-whatsapp text-success"></i></span>
+            <input type="text" name="company_whatsapp" class="form-control border" value="{{ contact_dict.company_whatsapp.value if contact_dict.company_whatsapp else company_whatsapp }}" placeholder="e.g. +91 7499077170" required>
+          </div>
+          <small class="text-muted mt-1 d-block">Powers the floating WhatsApp widget, mobile sticky bar, and instant enquiry modals.</small>
+        </div>
+
+        <!-- 4. Email Address -->
+        <div class="card p-3 mb-3 border bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+              <i class="fas fa-envelope text-gold"></i>
+              Official Email Address <span class="text-danger">*</span>
+            </label>
+            <div class="d-flex align-items-center gap-3">
+              <div class="d-flex align-items-center gap-1">
+                <small class="text-muted">Order:</small>
+                <input type="number" name="order_company_email" class="form-control form-control-sm text-center" style="width: 65px;" value="{{ contact_dict.company_email.display_order if contact_dict.company_email else 40 }}">
+              </div>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="is_enabled_company_email" name="is_enabled_company_email" value="1" {% if not contact_dict.company_email or contact_dict.company_email.is_enabled %}checked{% endif %}>
+                <label class="form-check-label small fw-semibold" for="is_enabled_company_email">Enabled</label>
+              </div>
+            </div>
+          </div>
+          <div class="input-group">
+            <span class="input-group-text bg-white border"><i class="fas fa-at text-gold"></i></span>
+            <input type="email" name="company_email" class="form-control border" value="{{ contact_dict.company_email.value if contact_dict.company_email else company_email }}" placeholder="e.g. contact@realestate.com" required>
+          </div>
+          <small class="text-muted mt-1 d-block">Direct email link: <code>mailto:{{ company_email }}</code>. Displayed in Header bar, Contact page, and Footer.</small>
+        </div>
+
+        <!-- 5. MahaRERA Registration Number -->
+        <div class="card p-3 mb-3 border bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+              <i class="fas fa-shield-alt text-gold"></i>
+              MahaRERA Registration Number
+            </label>
+            <div class="d-flex align-items-center gap-3">
+              <div class="d-flex align-items-center gap-1">
+                <small class="text-muted">Order:</small>
+                <input type="number" name="order_company_rera" class="form-control form-control-sm text-center" style="width: 65px;" value="{{ contact_dict.company_rera.display_order if contact_dict.company_rera else 50 }}">
+              </div>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="is_enabled_company_rera" name="is_enabled_company_rera" value="1" {% if not contact_dict.company_rera or contact_dict.company_rera.is_enabled %}checked{% endif %}>
+                <label class="form-check-label small fw-semibold" for="is_enabled_company_rera">Enabled</label>
+              </div>
+            </div>
+          </div>
+          <input type="text" name="company_rera" class="form-control border" value="{{ contact_dict.company_rera.value if contact_dict.company_rera else company_rera }}" placeholder="e.g. MahaRERA Reg. No: A52100034982">
+          <small class="text-muted mt-1 d-block">Displays government compliance badge across top utility bar, footer, and contact page.</small>
+        </div>
+
+        <!-- 6. Branch Office Address -->
+        <div class="card p-3 mb-3 border bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+              <i class="fas fa-building text-gold"></i>
+              Branch Office Address (Optional)
+            </label>
+            <div class="d-flex align-items-center gap-3">
+              <div class="d-flex align-items-center gap-1">
+                <small class="text-muted">Order:</small>
+                <input type="number" name="order_branch_office" class="form-control form-control-sm text-center" style="width: 65px;" value="{{ contact_dict.branch_office.display_order if contact_dict.branch_office else 60 }}">
+              </div>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="is_enabled_branch_office" name="is_enabled_branch_office" value="1" {% if contact_dict.branch_office and contact_dict.branch_office.is_enabled %}checked{% endif %}>
+                <label class="form-check-label small fw-semibold" for="is_enabled_branch_office">Enabled</label>
+              </div>
+            </div>
+          </div>
+          <textarea name="branch_office" class="form-control border" rows="2" placeholder="Secondary office or site lounge address (e.g. Hinjewadi IT Park Branch)">{{ contact_dict.branch_office.value if contact_dict.branch_office else branch_office }}</textarea>
+          <small class="text-muted mt-1 d-block">If enabled, appears on the Contact Us page and Footer alongside the Corporate Office.</small>
+        </div>
+
+        <!-- 7. Working Hours / Timings -->
+        <div class="card p-3 mb-3 border bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+              <i class="fas fa-clock text-gold"></i>
+              Working Hours / Timings
+            </label>
+            <div class="d-flex align-items-center gap-3">
+              <div class="d-flex align-items-center gap-1">
+                <small class="text-muted">Order:</small>
+                <input type="number" name="order_working_hours" class="form-control form-control-sm text-center" style="width: 65px;" value="{{ contact_dict.working_hours.display_order if contact_dict.working_hours else 70 }}">
+              </div>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="is_enabled_working_hours" name="is_enabled_working_hours" value="1" {% if not contact_dict.working_hours or contact_dict.working_hours.is_enabled %}checked{% endif %}>
+                <label class="form-check-label small fw-semibold" for="is_enabled_working_hours">Enabled</label>
+              </div>
+            </div>
+          </div>
+          <input type="text" name="working_hours" class="form-control border" value="{{ contact_dict.working_hours.value if contact_dict.working_hours else working_hours }}" placeholder="e.g. Mon - Sat: 9:30 AM - 7:30 PM | Sun: By Appointment">
+          <small class="text-muted mt-1 d-block">Clearly informs visitors of client consultation availability.</small>
+        </div>
+
+        <!-- 8. Google Maps Location URL -->
+        <div class="card p-3 mb-4 border bg-light">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+              <i class="fas fa-map-marker-alt text-danger"></i>
+              Google Maps Location (Embed or Direction URL)
+            </label>
+            <div class="d-flex align-items-center gap-3">
+              <div class="d-flex align-items-center gap-1">
+                <small class="text-muted">Order:</small>
+                <input type="number" name="order_google_maps_url" class="form-control form-control-sm text-center" style="width: 65px;" value="{{ contact_dict.google_maps_url.display_order if contact_dict.google_maps_url else 80 }}">
+              </div>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="is_enabled_google_maps_url" name="is_enabled_google_maps_url" value="1" {% if not contact_dict.google_maps_url or contact_dict.google_maps_url.is_enabled %}checked{% endif %}>
+                <label class="form-check-label small fw-semibold" for="is_enabled_google_maps_url">Enabled</label>
+              </div>
+            </div>
+          </div>
+          <input type="url" name="google_maps_url" class="form-control border" value="{{ contact_dict.google_maps_url.value if contact_dict.google_maps_url else google_maps_url }}" placeholder="https://maps.google.com/maps?q=...">
+          <small class="text-muted mt-1 d-block">Supports Google Maps embed URLs or directions links. Displayed on Contact Us page and Footer.</small>
+        </div>
+
+        <!-- 9. Additional Custom Contact Information Items -->
+        {% set custom_items = [] %}
+        {% for item in contact_settings_list %}
+          {% if item.is_custom %}
+            {% set _ = custom_items.append(item) %}
+          {% endif %}
+        {% endfor %}
+
+        <div class="pt-3 border-top mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h6 class="font-heading mb-0 text-dark">Additional Contact Information</h6>
+              <small class="text-muted">Custom contact numbers, desks, customer care, or specialized email channels</small>
+            </div>
+            <button type="button" class="btn btn-outline-gold btn-sm" data-bs-toggle="modal" data-bs-target="#addCustomContactModal">
+              <i class="fas fa-plus me-1"></i> Add Field
+            </button>
+          </div>
+
+          {% if custom_items %}
+            {% for c_item in custom_items %}
+            <div class="card p-3 mb-3 border bg-light">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex align-items-center gap-2 flex-grow-1 me-3">
+                  <i class="{{ c_item.icon }} text-gold"></i>
+                  <input type="text" name="lbl_{{ c_item.field_key }}" class="form-control form-control-sm fw-bold border" value="{{ c_item.label }}" placeholder="Field Label" style="max-width: 200px;">
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                  <div class="d-flex align-items-center gap-1">
+                    <small class="text-muted">Order:</small>
+                    <input type="number" name="order_{{ c_item.field_key }}" class="form-control form-control-sm text-center" style="width: 60px;" value="{{ c_item.display_order }}">
+                  </div>
+                  <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="is_enabled_{{ c_item.field_key }}" name="is_enabled_{{ c_item.field_key }}" value="1" {% if c_item.is_enabled %}checked{% endif %}>
+                  </div>
+                  <a href="{{ url_for('admin_settings_contact_delete', field_key=c_item.field_key) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this custom contact field?');" title="Delete Field">
+                    <i class="fas fa-trash-alt"></i>
+                  </a>
+                </div>
+              </div>
+              <div class="row g-2">
+                <div class="col-md-7">
+                  <input type="text" name="val_{{ c_item.field_key }}" class="form-control form-control-sm border" value="{{ c_item.value }}" placeholder="Contact Detail / Value" required>
+                </div>
+                <div class="col-md-3">
+                  <select name="link_{{ c_item.field_key }}" class="form-select form-select-sm border">
+                    <option value="none" {% if c_item.link_type == 'none' %}selected{% endif %}>Plain Text</option>
+                    <option value="tel" {% if c_item.link_type == 'tel' %}selected{% endif %}>Direct Call (tel:)</option>
+                    <option value="whatsapp" {% if c_item.link_type == 'whatsapp' %}selected{% endif %}>WhatsApp Chat</option>
+                    <option value="mailto" {% if c_item.link_type == 'mailto' %}selected{% endif %}>Email Link (mailto:)</option>
+                    <option value="url" {% if c_item.link_type == 'url' %}selected{% endif %}>Web URL</option>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <input type="text" name="icon_{{ c_item.field_key }}" class="form-control form-control-sm border" value="{{ c_item.icon }}" placeholder="Icon class">
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="p-3 text-center bg-light rounded border text-muted small">
+              <i class="fas fa-info-circle me-1"></i> No custom contact items added yet. Click <strong>+ Add Field</strong> to add customer care, NRI support, or alternative desk numbers.
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap pt-3 border-top">
+          <button type="submit" class="btn btn-gold px-4 py-2 fw-semibold">
+            <i class="fas fa-save me-1"></i> Save / Update All Contact Settings
+          </button>
+          <button type="button" 
+                  class="btn btn-outline-danger px-4 py-2"
+                  onclick="if(confirm('Are you sure you want to reset all Office & Contact Information to default?')) { document.getElementById('resetContactForm').submit(); }">
+            <i class="fas fa-undo me-1"></i> Reset to Default
+          </button>
+        </div>
+      </form>
+
+      <form id="resetContactForm" method="POST" action="{{ url_for('admin_settings_contact') }}" style="display:none;">
+        <input type="hidden" name="action" value="reset">
+      </form>
+    </div>
+  </div>
+
+  <!-- Live Contact Preview Sidebar Column -->
+  <div class="col-lg-4">
+    <div class="settings-card p-4 sticky-top" style="top: 80px;">
+      <h6 class="font-heading text-dark mb-3">
+        <i class="fas fa-eye text-gold me-2"></i>Live Contact Touchpoints Preview
+      </h6>
+      <p class="text-muted small mb-3">Live visualization of how visitors see your company contact details:</p>
+
+      <!-- 1. Header Bar Preview -->
+      <div class="mb-3">
+        <small class="text-muted fw-bold d-block mb-1">Top Utility Bar</small>
+        <div class="preview-box p-2 text-white rounded" style="background: #11141B; font-size: 0.78rem;">
+          <div class="d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-map-marker-alt text-gold me-1"></i>Pune</span>
+            {% if contact_dict.company_rera and contact_dict.company_rera.is_enabled %}
+            <span class="text-gold"><i class="fas fa-shield-alt me-1"></i>RERA</span>
+            {% endif %}
+            {% if contact_dict.company_phone and contact_dict.company_phone.is_enabled %}
+            <span class="text-gold fw-bold"><i class="fas fa-phone-alt me-1"></i>{{ company_phone }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Footer Contact Column Preview -->
+      <div class="mb-3">
+        <small class="text-muted fw-bold d-block mb-1">Footer Office & Contact Column</small>
+        <div class="preview-box small">
+          <h6 class="font-heading fs-6 text-gold mb-2">Office & Contact</h6>
+          {% if not contact_dict.corporate_office or contact_dict.corporate_office.is_enabled %}
+          <div class="mb-2">
+            <strong class="text-dark"><i class="fas fa-map-marker-alt text-gold me-1"></i> Corporate Office:</strong><br>
+            <span class="text-muted" style="font-size: 0.78rem;">{{ company_address }}</span>
+          </div>
+          {% endif %}
+
+          {% if contact_dict.branch_office and contact_dict.branch_office.is_enabled and branch_office %}
+          <div class="mb-2">
+            <strong class="text-dark"><i class="fas fa-building text-gold me-1"></i> Branch Office:</strong><br>
+            <span class="text-muted" style="font-size: 0.78rem;">{{ branch_office }}</span>
+          </div>
+          {% endif %}
+
+          {% if not contact_dict.company_phone or contact_dict.company_phone.is_enabled %}
+          <div class="mb-1">
+            <strong class="text-dark"><i class="fas fa-phone-alt text-gold me-1"></i> Call Us:</strong>
+            <a href="tel:{{ company_phone_raw }}" class="text-gold fw-bold ms-1">{{ company_phone }}</a>
+          </div>
+          {% endif %}
+
+          {% if not contact_dict.company_whatsapp or contact_dict.company_whatsapp.is_enabled %}
+          <div class="mb-1">
+            <strong class="text-dark"><i class="fab fa-whatsapp text-success me-1"></i> WhatsApp:</strong>
+            <span class="text-success fw-bold ms-1">{{ company_whatsapp }}</span>
+          </div>
+          {% endif %}
+
+          {% if not contact_dict.company_email or contact_dict.company_email.is_enabled %}
+          <div class="mb-1">
+            <strong class="text-dark"><i class="fas fa-envelope text-gold me-1"></i> Email:</strong>
+            <span class="text-muted ms-1" style="font-size: 0.78rem;">{{ company_email }}</span>
+          </div>
+          {% endif %}
+
+          {% if contact_dict.working_hours and contact_dict.working_hours.is_enabled and working_hours %}
+          <div class="mt-2 pt-2 border-top">
+            <strong class="text-dark"><i class="fas fa-clock text-gold me-1"></i> Timings:</strong><br>
+            <span class="text-muted" style="font-size: 0.75rem;">{{ working_hours }}</span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Quick Test Action Buttons -->
+      <div class="d-grid gap-2">
+        {% if not contact_dict.company_phone or contact_dict.company_phone.is_enabled %}
+        <a href="tel:{{ company_phone_raw }}" class="btn btn-outline-gold btn-sm py-2">
+          <i class="fas fa-phone-alt me-1"></i> Test Direct Calling ({{ company_phone }})
+        </a>
+        {% endif %}
+        {% if not contact_dict.company_email or contact_dict.company_email.is_enabled %}
+        <a href="mailto:{{ company_email }}" class="btn btn-outline-secondary btn-sm py-2">
+          <i class="fas fa-envelope me-1"></i> Test Direct Email ({{ company_email }})
+        </a>
+        {% endif %}
+        {% if contact_dict.google_maps_url and contact_dict.google_maps_url.is_enabled and google_maps_url %}
+        <a href="{{ google_maps_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-info btn-sm py-2">
+          <i class="fas fa-map-marker-alt me-1"></i> Test Google Maps Location
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Additional Contact Information -->
+<div class="modal fade" id="addCustomContactModal" tabindex="-1" aria-labelledby="addCustomContactModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border">
+      <form method="POST" action="{{ url_for('admin_settings_contact') }}">
+        <input type="hidden" name="action" value="add_custom">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title font-heading text-dark" id="addCustomContactModalLabel">
+            <i class="fas fa-plus-circle text-gold me-2"></i>Add Additional Contact Information
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Field Label <span class="text-danger">*</span></label>
+            <input type="text" name="new_label" class="form-control" placeholder="e.g. NRI Advisory Desk, Customer Support, Sales Hotline" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Contact Detail / Value <span class="text-danger">*</span></label>
+            <input type="text" name="new_value" class="form-control" placeholder="e.g. +91 20 6789 1234 or nri@grnproperties.com" required>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Link Action</label>
+              <select name="new_link_type" class="form-select">
+                <option value="none">Plain Text</option>
+                <option value="tel">Direct Call (tel:)</option>
+                <option value="whatsapp">WhatsApp Chat</option>
+                <option value="mailto">Email Link (mailto:)</option>
+                <option value="url">External Web URL</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Display Order</label>
+              <input type="number" name="new_order" class="form-control" value="90">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Icon Class (Font Awesome)</label>
+            <input type="text" name="new_icon" class="form-control" value="fas fa-headset" placeholder="e.g. fas fa-headset, fas fa-phone-volume">
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="new_enabled" name="new_enabled" value="1" checked>
+            <label class="form-check-label fw-semibold" for="new_enabled">Enable Immediately on Public Website</label>
+          </div>
+        </div>
+        <div class="modal-footer border-top">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold fw-semibold">
+            <i class="fas fa-plus me-1"></i> Add Contact Information
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<!-- ========================================================================= -->
+<!-- SECTION 2: WHATSAPP MESSAGE SETTINGS                                      -->
+<!-- ========================================================================= -->
+<div class="row g-4">
+  <!-- WhatsApp Settings Form Column -->
+  <div class="col-lg-7">
+    <div class="settings-card p-4">
+      <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom">
+        <div class="d-flex align-items-center gap-2">
+          <div class="rounded-circle p-2 bg-success bg-opacity-10 text-success fs-5">
+            <i class="fab fa-whatsapp"></i>
+          </div>
+          <div>
+            <h5 class="font-heading mb-0 text-dark">WhatsApp Message Settings</h5>
+            <small class="text-muted">Configure dynamic pre-filled greeting and property inquiry details</small>
+          </div>
+        </div>
+        <span class="badge bg-success bg-opacity-10 text-success border border-success fw-bold">
+          <i class="fas fa-check-circle me-1"></i>Active Synced
+        </span>
+      </div>
+
+      <div class="alert alert-success py-2 px-3 small mb-4" style="background-color: rgba(37, 211, 102, 0.1); border-left: 3px solid #25d366;">
+        <i class="fab fa-whatsapp text-success me-1"></i>
+        Configure the 4-part message sequence sent when website visitors click WhatsApp contact triggers. Sequence:
+        <strong>1. Default Greeting &bull; 2. Listing Title &bull; 3. Listing URL &bull; 4. Additional Message</strong>.
+        Listing details are automatically inserted only on specific property pages.
+      </div>
+
+      <form method="POST" action="{{ url_for('admin_settings_whatsapp') }}" id="whatsappForm">
+        <input type="hidden" name="whatsapp_message" id="whatsapp_message_legacy" value="{{ whatsapp_default_message }}">
+
+        <!-- Field A: Default WhatsApp Contact Message * -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label for="whatsapp_default_message" class="form-label fw-bold text-dark mb-0">
+              Default WhatsApp Contact Message <span class="text-danger">*</span>
+            </label>
+            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle small">Mandatory</span>
+          </div>
+          <p class="text-muted small mb-2">
+            The opening greeting for all WhatsApp consultations across the website (Floating Button, Footer, Header, Contact Us page).
+          </p>
+          <textarea class="form-control border p-3" 
+                    id="whatsapp_default_message" 
+                    name="whatsapp_default_message" 
+                    rows="3" 
+                    required
+                    placeholder="e.g. Hi {{ website_name }}, I am looking for property consultation in Pune."
+                    oninput="renderWaSimulation()">{{ whatsapp_default_message }}</textarea>
+          <div class="form-text mt-1 text-muted small d-flex justify-content-between">
+            <span>Default: <em>"Hi {{ website_name }}, I am looking for property consultation in Pune."</em></span>
+            <span id="waDefaultCharCount">{{ whatsapp_default_message|length }} characters</span>
+          </div>
+        </div>
+
+        <!-- Field B: Listing Title -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label for="whatsapp_listing_title_format" class="form-label fw-bold text-dark mb-0">
+              Listing Title
+            </label>
+            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle small">Dynamic Placeholder</span>
+          </div>
+          <p class="text-muted small mb-2">
+            Format for property name when clicked from a specific listing. Placeholder <code>&#123;&#123;listing_title&#125;&#125;</code> is replaced with actual property title data.
+          </p>
+          <div class="input-group">
+            <span class="input-group-text bg-light border"><i class="fas fa-heading text-gold"></i></span>
+            <input type="text" 
+                   class="form-control border" 
+                   id="whatsapp_listing_title_format" 
+                   name="whatsapp_listing_title_format" 
+                   value="{{ whatsapp_listing_title_format }}" 
+                   placeholder="Property / Listing Name: {{listing_title}}."
+                   oninput="renderWaSimulation()">
+          </div>
+          <div class="form-text mt-1 text-muted small">
+            <i class="fas fa-info-circle me-1 text-primary"></i> Automatically omitted when visitor clicks WhatsApp from general website pages.
+          </div>
+        </div>
+
+        <!-- Field C: Listing URL (Property URL) -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label for="whatsapp_listing_url_format" class="form-label fw-bold text-dark mb-0">
+              Listing URL (Property URL)
+            </label>
+            <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle small">Dynamic Placeholder</span>
+          </div>
+          <p class="text-muted small mb-2">
+            Format for listing link. Placeholder <code>&#123;&#123;listing_url&#125;&#125;</code> is dynamically populated with the property's exact web link.
+          </p>
+          <div class="input-group">
+            <span class="input-group-text bg-light border"><i class="fas fa-link text-gold"></i></span>
+            <input type="text" 
+                   class="form-control border" 
+                   id="whatsapp_listing_url_format" 
+                   name="whatsapp_listing_url_format" 
+                   value="{{ whatsapp_listing_url_format }}" 
+                   placeholder="Property Details Link: {{listing_url}}"
+                   oninput="renderWaSimulation()">
+          </div>
+          <div class="form-text mt-1 text-muted small">
+            <i class="fas fa-info-circle me-1 text-info"></i> Automatically omitted when visitor clicks WhatsApp from general website pages.
+          </div>
+        </div>
+
+        <!-- Field D: Additional Message (Optional) -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label for="whatsapp_additional_message" class="form-label fw-bold text-dark mb-0">
+              Additional Message <span class="text-muted fw-normal">(Optional)</span>
+            </label>
+            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle small">Optional</span>
+          </div>
+          <p class="text-muted small mb-2">
+            Extra consultation questions or instructions. If left blank, automatically skipped without empty lines.
+          </p>
+          <textarea class="form-control border p-3" 
+                    id="whatsapp_additional_message" 
+                    name="whatsapp_additional_message" 
+                    rows="3" 
+                    placeholder="e.g. Please share the complete property details, pricing, location and site visit availability."
+                    oninput="renderWaSimulation()">{{ whatsapp_additional_message }}</textarea>
+          <div class="form-text mt-1 text-muted small">
+            Target WhatsApp Number: <strong>{{ company_whatsapp }}</strong> (from Office &amp; Contact Settings)
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex gap-2 flex-wrap pt-3 border-top align-items-center">
+          <button type="submit" name="action" value="save" class="btn btn-success px-4 py-2 fw-semibold">
+            <i class="fas fa-save me-1"></i> Save Settings
+          </button>
+          <button type="button" class="btn btn-outline-primary px-3 py-2 fw-semibold" onclick="document.getElementById('waSimCard').scrollIntoView({behavior: 'smooth'})">
+            <i class="fas fa-eye me-1"></i> Preview WhatsApp Message
+          </button>
+          <button type="submit" 
+                  name="action" 
+                  value="reset" 
+                  class="btn btn-outline-danger px-4 py-2 ms-auto"
+                  onclick="return confirm('Are you sure you want to reset all WhatsApp Message Settings back to system defaults?');">
+            <i class="fas fa-undo me-1"></i> Reset to Default
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Interactive WhatsApp Simulation & Test Column -->
+  <div class="col-lg-5" id="waSimCol">
+    <div class="settings-card p-4" id="waSimCard">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="font-heading text-dark mb-0">
+          <i class="fab fa-whatsapp text-success me-2"></i>Live WhatsApp Chat Simulation
+        </h6>
+        <span class="badge bg-light text-muted border">Customer View</span>
+      </div>
+
+      <!-- Preview Mode Switcher -->
+      <div class="mb-3">
+        <label class="form-label small text-muted fw-bold mb-1">Simulate Visitor Context:</label>
+        <div class="btn-group w-100" role="group">
+          <button type="button" 
+                  id="modePropBtn" 
+                  class="btn btn-sm btn-gold active fw-semibold" 
+                  onclick="setPreviewMode('property')">
+            <i class="fas fa-building me-1"></i> Property Listing Page
+          </button>
+          <button type="button" 
+                  id="modeGeneralBtn" 
+                  class="btn btn-sm btn-outline-secondary fw-semibold" 
+                  onclick="setPreviewMode('general')">
+            <i class="fas fa-globe me-1"></i> General Website Page
+          </button>
+        </div>
+      </div>
+
+      <!-- Property Selector for Simulation (visible when mode == 'property') -->
+      <div id="propSelectorBox" class="mb-3 p-2 bg-light rounded border">
+        <label for="samplePropSelect" class="form-label small text-muted fw-semibold mb-1">
+          <i class="fas fa-home text-gold me-1"></i>Select Property for Simulation:
+        </label>
+        <select class="form-select form-select-sm" id="samplePropSelect" onchange="onSamplePropChange(this)">
+          {% if sample_properties %}
+            {% for sp in sample_properties %}
+            <option value="{{ url_for('property_detail', slug_or_id=sp.slug, _external=True) }}" data-title="{{ sp.title }}">
+              {{ sp.title }} ({{ sp.location }})
+            </option>
+            {% endfor %}
+          {% else %}
+            <option value="{{ sample_url }}" data-title="{{ sample_title }}">
+              {{ sample_title }}
+            </option>
+          {% endif %}
+        </select>
+      </div>
+
+      <!-- WhatsApp Chat Mockup -->
+      <div class="wa-chat-container shadow-sm mb-4">
+        <!-- WhatsApp Header -->
+        <div class="wa-header">
+          <div class="wa-avatar">
+            <i class="fas fa-building"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="fw-bold fs-6 leading-tight">{{ company_name }} Advisor</div>
+            <div class="small opacity-75" style="font-size: 0.72rem;">Online | {{ company_whatsapp }}</div>
+          </div>
+          <div>
+            <i class="fas fa-ellipsis-v opacity-75"></i>
+          </div>
+        </div>
+
+        <!-- WhatsApp Chat Area -->
+        <div class="wa-body">
+          <div class="wa-bubble shadow-sm" id="waBubbleContainer">
+            <div id="waBubbleContent" style="white-space: pre-wrap; font-size: 0.88rem; line-height: 1.45;"></div>
+            <div class="wa-bubble-time">
+              <span>Just now</span>
+              <i class="fas fa-check-double text-primary" style="font-size: 0.65rem;"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Test Trigger Button -->
+      <div class="d-grid gap-2">
+        <a href="{{ sample_preview_url }}" 
+           id="testWaButton" 
+           target="_blank" 
+           rel="noopener noreferrer" 
+           class="btn btn-whatsapp py-2 fw-semibold">
+          <i class="fab fa-whatsapp me-2 fs-5"></i> Test Live WhatsApp Message
+        </a>
+        <small class="text-muted text-center" style="font-size: 0.78rem;">
+          <i class="fas fa-external-link-alt me-1"></i> Launches WhatsApp with the exact composed message above.
+        </small>
+      </div>
+
+      <!-- Generated URL Preview -->
+      <div class="mt-4 pt-3 border-top">
+        <small class="text-muted fw-bold d-block mb-1">Generated Direct WhatsApp URL:</small>
+        <div class="p-2 bg-light border rounded small font-monospace text-break" style="font-size: 0.72rem;" id="waRawUrlPreview">
+          {{ sample_preview_url }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+  function updatePreview(val) {
+    var clean = val ? val.trim() : 'GRN Properties';
+    var spans = document.querySelectorAll('.preview-site-name');
+    spans.forEach(function(s) {
+      s.textContent = clean;
+    });
+    var tabTitle = document.getElementById('previewTabTitle');
+    if (tabTitle) {
+      tabTitle.textContent = clean + ' | Premier Real Estate Portal';
+    }
+    var charCount = document.getElementById('nameCharCount');
+    if (charCount) {
+      charCount.textContent = (val ? val.length : 0) + ' characters';
+    }
+  }
+
+  var currentPreviewMode = 'property';
+  var currentSampleTitle = {{ sample_title|tojson }};
+  var currentSampleUrl = {{ sample_url|tojson }};
+
+  function setPreviewMode(mode) {
+    currentPreviewMode = mode;
+    var btnProp = document.getElementById('modePropBtn');
+    var btnGen = document.getElementById('modeGeneralBtn');
+    var propBox = document.getElementById('propSelectorBox');
+
+    if (mode === 'property') {
+      if (btnProp) { btnProp.classList.add('btn-gold'); btnProp.classList.remove('btn-outline-secondary'); }
+      if (btnGen) { btnGen.classList.add('btn-outline-secondary'); btnGen.classList.remove('btn-gold'); }
+      if (propBox) propBox.style.display = 'block';
+    } else {
+      if (btnGen) { btnGen.classList.add('btn-gold'); btnGen.classList.remove('btn-outline-secondary'); }
+      if (btnProp) { btnProp.classList.add('btn-outline-secondary'); btnProp.classList.remove('btn-gold'); }
+      if (propBox) propBox.style.display = 'none';
+    }
+    renderWaSimulation();
+  }
+
+  function onSamplePropChange(selectElem) {
+    var opt = selectElem.options[selectElem.selectedIndex];
+    currentSampleUrl = selectElem.value;
+    currentSampleTitle = opt.getAttribute('data-title') || opt.textContent.trim();
+    renderWaSimulation();
+  }
+
+  function renderWaSimulation() {
+    var defInput = document.getElementById('whatsapp_default_message');
+    var titleInput = document.getElementById('whatsapp_listing_title_format');
+    var urlInput = document.getElementById('whatsapp_listing_url_format');
+    var addInput = document.getElementById('whatsapp_additional_message');
+    var legacyInput = document.getElementById('whatsapp_message_legacy');
+
+    var defaultMsg = defInput ? defInput.value.trim() : '';
+    var titleFmt = titleInput ? titleInput.value.trim() : '';
+    var urlFmt = urlInput ? urlInput.value.trim() : '';
+    var addMsg = addInput ? addInput.value.trim() : '';
+
+    if (legacyInput) {
+      legacyInput.value = defaultMsg;
+    }
+
+    var defCount = document.getElementById('waDefaultCharCount');
+    if (defCount && defInput) {
+      defCount.textContent = defInput.value.length + ' characters';
+    }
+
+    var parts = [];
+    if (defaultMsg) {
+      parts.push(defaultMsg);
+    }
+
+    if (currentPreviewMode === 'property') {
+      var t = currentSampleTitle || "3BHK Premium Flat in Wakad";
+      var u = currentSampleUrl || "http://127.0.0.1:5000/property/3bhk-flat-wakad";
+
+      if (titleFmt) {
+        var tLine = titleFmt.replace(/\{\{listing_title\}\}/g, t).replace(/\{listing_title\}/g, t);
+        parts.push(tLine);
+      }
+      if (urlFmt) {
+        var uLine = urlFmt.replace(/\{\{listing_url\}\}/g, u).replace(/\{listing_url\}/g, u);
+        parts.push(uLine);
+      }
+    }
+
+    if (addMsg) {
+      parts.push(addMsg);
+    }
+
+    var fullText = parts.join("\n\n");
+    var bubbleContent = document.getElementById('waBubbleContent');
+    if (bubbleContent) {
+      bubbleContent.textContent = fullText;
+    }
+
+    var rawNumber = '{{ company_whatsapp_raw }}';
+    var encoded = encodeURIComponent(fullText);
+    var fullUrl = 'https://wa.me/' + rawNumber + '?text=' + encoded;
+
+    var testBtn = document.getElementById('testWaButton');
+    if (testBtn) {
+      testBtn.href = fullUrl;
+    }
+    var rawUrlBox = document.getElementById('waRawUrlPreview');
+    if (rawUrlBox) {
+      rawUrlBox.textContent = fullUrl;
+    }
+  }
+
+  // Initialize simulation on load
+  document.addEventListener('DOMContentLoaded', function() {
+    renderWaSimulation();
+  });
+</script>
+{% endblock %}
+

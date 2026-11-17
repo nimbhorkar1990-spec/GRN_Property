@@ -1,0 +1,323 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}{% if action == 'edit' %}Edit Property{% else %}Add New Property{% endif %} | Admin Portal{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="font-heading fs-3 text-dark mb-1">
+      {% if action == 'edit' %}Edit Property: {{ property.title }}{% else %}Add New Property{% endif %}
+    </h1>
+    <p class="text-muted small mb-0">Fill in the complete property specifications, pricing, and images below.</p>
+  </div>
+  <a href="{{ url_for('admin_properties') }}" class="btn btn-outline-secondary btn-sm">
+    &larr; Back to Inventory
+  </a>
+</div>
+
+<form action="{% if action == 'edit' %}{{ url_for('admin_property_edit', prop_id=property.id) }}{% else %}{{ url_for('admin_property_add') }}{% endif %}" method="POST" enctype="multipart/form-data">
+  
+  <div class="row g-4">
+    <!-- Left Column: Form Fields -->
+    <div class="col-lg-8">
+      
+      <!-- Basic Details Section -->
+      <div class="admin-card p-4">
+        <div class="form-section-title"><i class="fas fa-info-circle me-2"></i>Basic Information</div>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label-custom">Property Title <span class="text-danger">*</span></label>
+            {% if action == 'edit' %}
+              <input type="text" name="title" class="form-control form-control-custom bg-secondary-subtle text-muted" value="{{ property.title }}" readonly>
+              <small class="text-warning d-block mt-1"><i class="fas fa-lock me-1"></i>Property Title cannot be modified once submitted.</small>
+            {% else %}
+              <input type="text" name="title" class="form-control form-control-custom" placeholder="e.g. Emerald Palms - Premium 3 BHK Smart Living" value="{{ property.title if property else '' }}" required>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label-custom">Category <span class="text-danger">*</span></label>
+            <select name="category" class="form-select form-select-custom" required>
+              {% for cat in property_categories %}
+                <option value="{{ cat }}" {% if property and property.category == cat %}selected{% endif %}>{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label-custom">Property Type</label>
+            <select name="property_type" class="form-select form-select-custom">
+              <option value="Residential" {% if property and property.property_type == 'Residential' %}selected{% endif %}>Residential</option>
+              <option value="Commercial" {% if property and property.property_type == 'Commercial' %}selected{% endif %}>Commercial</option>
+              <option value="Land" {% if property and property.property_type == 'Land' %}selected{% endif %}>Land / Plot</option>
+              <option value="Villa" {% if property and property.property_type == 'Villa' %}selected{% endif %}>Luxury Villa / Bungalow</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label-custom">Purpose <span class="text-danger">*</span></label>
+            <select name="purpose" class="form-select form-select-custom" required>
+              <option value="Buy" {% if property and property.purpose == 'Buy' %}selected{% endif %}>Buy (Sale)</option>
+              <option value="Rent" {% if property and property.purpose == 'Rent' %}selected{% endif %}>Rent / Lease</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pricing & Area Section -->
+      <div class="admin-card p-4">
+        <div class="form-section-title"><i class="fas fa-rupee-sign me-2"></i>Pricing & Dimensions</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label-custom">Numeric Price in ₹ (for sorting/filters) <span class="text-danger">*</span></label>
+            <input type="number" step="1000" name="price" class="form-control form-control-custom" placeholder="e.g. 14500000" value="{{ property.price|int if property else '' }}" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label-custom">Display Price <span class="text-danger">*</span></label>
+            <input type="text" name="price_display" class="form-control form-control-custom" placeholder="e.g. ₹1.45 Cr or ₹35,000 / month" value="{{ property.price_display if property else '' }}" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label-custom">Carpet Area (sq.ft) <span class="text-danger">*</span></label>
+            <input type="number" name="carpet_area" class="form-control form-control-custom" placeholder="e.g. 1250" value="{{ property.carpet_area if property else '' }}" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label-custom">Super Built-up Area (sq.ft)</label>
+            <input type="number" name="super_area" class="form-control form-control-custom" placeholder="e.g. 1650" value="{{ property.super_area if property else '' }}">
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label-custom">Configuration</label>
+            <input type="text" name="configuration" class="form-control form-control-custom" placeholder="e.g. 3 BHK" value="{{ property.configuration if property else '' }}">
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label-custom">Bedrooms</label>
+            <input type="number" name="bedrooms" class="form-control form-control-custom" value="{{ property.bedrooms if property else 0 }}">
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label-custom">Bathrooms</label>
+            <input type="number" name="bathrooms" class="form-control form-control-custom" value="{{ property.bathrooms if property else 0 }}">
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label-custom">Balconies</label>
+            <input type="number" name="balconies" class="form-control form-control-custom" value="{{ property.balconies if property else 0 }}">
+          </div>
+        </div>
+      </div>
+
+      <!-- Location & Legal Details -->
+      <div class="admin-card p-4">
+        <div class="form-section-title"><i class="fas fa-map-marked-alt me-2"></i>Location & Compliance</div>
+        <div class="row g-3">
+          <!-- City Name: Manual Entry with Dropdown Suggestions (Requirement A) -->
+          <div class="col-md-6">
+            <label class="form-label-custom">City Name <span class="text-danger">*</span></label>
+            <input type="text" name="city" list="adminCitiesList" class="form-control form-control-custom" placeholder="Type city or select from suggestions..." value="{{ property.city if property and property.city else 'Pune' }}" required autocomplete="off">
+            <datalist id="adminCitiesList">
+              {% for c in available_cities %}
+                <option value="{{ c }}">{{ c }}</option>
+              {% endfor %}
+            </datalist>
+            <small class="text-muted">Type city manually or pick from suggestions (selection optional)</small>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label-custom">Location / Sub-Market <span class="text-danger">*</span></label>
+            <input type="text" name="sub_location" class="form-control form-control-custom" placeholder="e.g. Baner, Wakad, Andheri, Whitefield..." value="{{ property.sub_location if property else '' }}" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label-custom">General Location Label <span class="text-danger">*</span></label>
+            <input type="text" name="location" class="form-control form-control-custom" placeholder="e.g. Baner, Pune" value="{{ property.location if property else '' }}" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label-custom">Possession Status</label>
+            <input type="text" name="possession_status" class="form-control form-control-custom" placeholder="e.g. Ready to Move, Dec 2026" value="{{ property.possession_status if property else '' }}">
+          </div>
+
+          <div class="col-12">
+            <label class="form-label-custom">Detailed Street Address / Landmark</label>
+            <input type="text" name="address" class="form-control form-control-custom" placeholder="e.g. Pancard Club Road, Near Baner Biodiversity Hill, Pune 411045" value="{{ property.address if property else '' }}">
+          </div>
+
+          <!-- MahaRERA: Lock After Activation (Requirement C) -->
+          <div class="col-md-12">
+            <label class="form-label-custom">MahaRERA Registration Number</label>
+            {% if property and (property.rera_locked or property.status in ['Active', 'Available', 'Sold', 'Rented']) %}
+              <input type="text" name="rera_number" class="form-control form-control-custom bg-secondary-subtle text-muted" value="{{ property.rera_number or '' }}" readonly>
+              <small class="text-danger d-block mt-1"><i class="fas fa-lock me-1"></i>MahaRERA Registration Number is locked permanently following listing activation.</small>
+            {% else %}
+              <input type="text" name="rera_number" class="form-control form-control-custom" placeholder="e.g. P52100031890" value="{{ property.rera_number if property else '' }}">
+              <small class="text-muted">Editable before activation</small>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Description & Nearby Landmarks -->
+      <div class="admin-card p-4">
+        <div class="form-section-title"><i class="fas fa-align-left me-2"></i>Description & Highlights</div>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label-custom">Complete Property Description <span class="text-danger">*</span></label>
+            <textarea name="description" class="form-control form-control-custom" rows="5" placeholder="Detailed architectural description, key selling propositions, fittings, ventilation, and lifestyle advantages..." required>{{ property.description if property else '' }}</textarea>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label-custom">Nearby Landmarks & Transit (One per line)</label>
+            <textarea name="nearby_landmarks" class="form-control form-control-custom" rows="3" placeholder="Balewadi High Street - 2 mins&#10;Hinjewadi IT Park - 10 mins&#10;Mumbai-Pune Expressway - 8 mins&#10;Jupiter Hospital - 12 mins">{{ existing_landmarks if existing_landmarks else '' }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amenities Section -->
+      <div class="admin-card p-4 amenities-section" style="background: #FFFFFF !important; border: 1px solid #E2E8F0;">
+        <div class="form-section-title" style="color: #000000 !important; font-weight: 700; border-bottom: 2px solid #E2E8F0;"><i class="fas fa-concierge-bell me-2" style="color: #D4AF37;"></i>Select Amenities</div>
+        {% set amenity_options = [
+          'Swimming Pool', 'State-of-the-Art Fitness Gym', 'Clubhouse with Banquet Hall',
+          '24/7 Multi-Tier Security', 'Dedicated Concierge', 'EV Fast Charging Bays',
+          'Covered Double Parking', 'Landscaped Zen Garden', 'Children\'s Adventure Play Area',
+          'Jogging & Cycling Track', '100% DG Power Backup', 'High-Speed Elevators',
+          'Private Rooftop Swimming Pool', 'Solar Water Heating', 'Internal Private Elevator',
+          'CCTV Surveillance', 'Rainwater Harvesting', 'Fire Sprinklers & Alarms'
+        ] %}
+        
+        <div class="row g-2 mb-3">
+          {% for am in amenity_options %}
+            <div class="col-md-4 col-sm-6">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="amenities" value="{{ am }}" id="am_{{ loop.index }}"
+                  {% if existing_amenities and am in existing_amenities %}checked{% endif %}>
+                <label class="form-check-label small" for="am_{{ loop.index }}" style="color: #000000 !important; font-weight: 500;">
+                  {{ am }}
+                </label>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <label class="form-label-custom" style="color: #000000 !important; font-weight: 600;">Additional Custom Amenities (Comma Separated)</label>
+        <input type="text" name="custom_amenities" class="form-control form-control-custom" placeholder="e.g. Squash Court, Wine Cellar, Golf Simulator" style="color: #000000 !important; background-color: #FFFFFF !important; border: 1px solid #CBD5E1 !important;">
+      </div>
+
+    </div>
+
+    <!-- Right Column: Media, Status & Save -->
+    <div class="col-lg-4">
+      
+      <!-- Status & Featured Settings -->
+      <div class="admin-card p-4">
+        <div class="form-section-title"><i class="fas fa-toggle-on me-2"></i>Listing Status & Approval</div>
+        
+        {% if action == 'add' %}
+          <div class="p-3 rounded bg-warning-subtle border border-warning mb-3">
+            <span class="badge bg-warning text-dark mb-2"><i class="fas fa-hourglass-half me-1"></i>Default: Under Review</span>
+            <p class="small text-dark mb-0">Per listing policy, newly submitted ads default to <strong>Under Review</strong> and can be activated from Pending Approvals.</p>
+          </div>
+        {% else %}
+          <div class="mb-3">
+            <label class="form-label-custom">Availability Status</label>
+            <select name="status" class="form-select form-select-custom">
+              <option value="Under Review" {% if property and property.status == 'Under Review' %}selected{% endif %}>Under Review (Pending)</option>
+              <option value="Available" {% if property and property.status in ['Available', 'Active'] %}selected{% endif %}>Active / Available</option>
+              <option value="Sold" {% if property and property.status == 'Sold' %}selected{% endif %}>Sold</option>
+              <option value="Rented" {% if property and property.status == 'Rented' %}selected{% endif %}>Rented</option>
+              <option value="Rejected" {% if property and property.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+            </select>
+          </div>
+        {% endif %}
+
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" name="featured" id="featuredSwitch" value="1" {% if property and property.featured %}checked{% endif %}>
+          <label class="form-check-label text-dark fw-bold" for="featuredSwitch">Mark as Featured Property</label>
+          <small class="text-muted d-block">Featured properties display prominently on the homepage hero showcase.</small>
+        </div>
+
+        <div class="d-grid mt-4">
+          <button type="submit" class="btn btn-gold py-3">
+            <i class="fas fa-save me-2"></i> {% if action == 'edit' %}Save Property Details{% else %}Submit Property for Review{% endif %}
+          </button>
+        </div>
+      </div>
+
+      <!-- Featured Image Upload -->
+      <div class="admin-card p-4">
+        <div class="form-section-title"><i class="fas fa-image me-2"></i>Featured Primary Image</div>
+        
+        {% if property and property.featured_image %}
+          <div class="mb-3">
+            <img src="{{ property.featured_image }}" alt="Current Featured" class="img-fluid rounded border border-secondary" style="max-height: 180px; width: 100%; object-fit: cover;">
+            <small class="text-muted d-block mt-1">Current image preview</small>
+          </div>
+        {% endif %}
+
+        <div class="mb-3">
+          <label class="form-label-custom">Upload Image File</label>
+          <input type="file" name="featured_image_file" class="form-control form-control-custom" accept="image/*">
+        </div>
+
+        <div class="mb-2 text-center text-muted small">— OR —</div>
+
+        <div class="mb-3">
+          <label class="form-label-custom">Image URL (High-Res Web Link)</label>
+          <input type="url" name="featured_image_url" class="form-control form-control-custom" placeholder="https://..." value="{{ property.featured_image if property else '' }}">
+        </div>
+      </div>
+
+      <!-- Multiple Gallery Images Upload -->
+      <div class="admin-card p-4">
+        <div class="form-section-title"><i class="fas fa-images me-2"></i>Gallery Images</div>
+        
+        <div class="mb-3">
+          <label class="form-label-custom">Upload Multiple Gallery Files</label>
+          <input type="file" name="gallery_files" class="form-control form-control-custom" accept="image/*" multiple>
+        </div>
+
+        <div class="mb-2 text-center text-muted small">— OR / AND —</div>
+
+        <div class="mb-3">
+          <label class="form-label-custom">Gallery URLs (One per line)</label>
+          <textarea name="gallery_image_urls" class="form-control form-control-custom" rows="4" placeholder="https://images.unsplash.com/...&#10;https://images.unsplash.com/...">{{ existing_gallery if existing_gallery else '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- Short Videos (Walkthrough / Reel) -->
+      <div class="admin-card p-4">
+        <div class="form-section-title"><i class="fas fa-video me-2"></i>Short Videos</div>
+        <p class="text-muted small mb-3">Upload short walkthrough clips or provide video URLs (YouTube, Vimeo, MP4).</p>
+        <div class="mb-3">
+          <label class="form-label-custom">Upload Short Video Files</label>
+          <input type="file" name="video_files" class="form-control form-control-custom" accept="video/*" multiple>
+        </div>
+        <div class="mb-2 text-center text-muted small">— OR / AND —</div>
+        <div class="mb-3">
+          <label class="form-label-custom">Video URLs (One per line)</label>
+          <textarea name="video_urls" class="form-control form-control-custom" rows="3" placeholder="https://www.youtube.com/watch?v=...&#10;https://example.com/tour.mp4">{{ existing_videos if existing_videos else '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- Floor Plan Image -->
+      <div class="admin-card p-4">
+        <div class="form-section-title"><i class="fas fa-draw-polygon me-2"></i>Floor Plan</div>
+        <div class="mb-3">
+          <label class="form-label-custom">Upload Floor Plan File</label>
+          <input type="file" name="floor_plan_file" class="form-control form-control-custom" accept="image/*">
+        </div>
+        <div class="mb-3">
+          <label class="form-label-custom">Floor Plan Image URL</label>
+          <input type="url" name="floor_plan_image_url" class="form-control form-control-custom" placeholder="https://..." value="{{ property.floor_plan_image if property else '' }}">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</form>
+{% endblock %}
+

@@ -1,0 +1,186 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Pending Property Approvals | {{ company_name }}{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="font-heading fs-3 text-dark mb-1">
+      <i class="fas fa-clipboard-check text-gold me-2"></i>Pending Property Approvals
+    </h1>
+    <p class="text-muted small mb-0">Review submitted advertisements from Agents, Property Owners, and Admin. Approve listings to make them publicly live on {{ company_name }}, or reject them.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('admin_properties') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-list me-1"></i> All Properties
+    </a>
+    <a href="{{ url_for('admin_property_add') }}" class="btn btn-gold btn-sm">
+      <i class="fas fa-plus me-1"></i> Submit Property
+    </a>
+  </div>
+</div>
+
+<!-- Pending Approvals Alert Banner -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="admin-card p-3 border-start border-4 border-warning d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <div class="stat-icon bg-warning text-dark me-3" style="width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+          <i class="fas fa-hourglass-half"></i>
+        </div>
+        <div>
+          <h5 class="text-dark mb-0">{{ total_pending }} Listing{{ 's' if total_pending != 1 else '' }} Awaiting Review</h5>
+          <small class="text-muted">Unapproved properties are kept private and do not appear in public searches or listings.</small>
+        </div>
+      </div>
+      <div>
+        <span class="badge bg-warning text-dark fs-6 px-3 py-2">Approval Queue</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pending Properties Table -->
+<div class="admin-card overflow-hidden">
+  {% if properties and properties|length > 0 %}
+    <div class="table-responsive">
+      <table class="table admin-table table-hover align-middle mb-0">
+        <thead>
+          <tr class="text-gold font-heading small border-bottom">
+            <th>Listing / Property</th>
+            <th>City & Location</th>
+            <th>Price & Details</th>
+            <th>Submitted By</th>
+            <th>MahaRERA No.</th>
+            <th>Submitted Date</th>
+            <th>Status</th>
+            <th class="text-end">Review Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in properties %}
+            <tr>
+              <!-- Property Details -->
+              <td>
+                <div class="d-flex align-items-center">
+                  <img src="{{ p.featured_image }}" alt="{{ p.title }}" class="rounded me-3 border border-secondary" style="width: 60px; height: 45px; object-fit: cover;">
+                  <div>
+                    <strong class="text-dark d-block text-truncate" style="max-width: 260px;" title="{{ p.title }}">{{ p.title }}</strong>
+                    <small class="text-muted">
+                      ID: #{{ p.id }} &bull; <span class="text-gold">{{ p.category }}</span>
+                    </small>
+                  </div>
+                </div>
+              </td>
+
+              <!-- City & Location -->
+              <td>
+                <span class="badge bg-info text-dark me-1"><i class="fas fa-city me-1"></i>{{ p.city or 'Pune' }}</span>
+                <span class="text-dark d-block small mt-1">{{ p.sub_location or p.location }}</span>
+              </td>
+
+              <!-- Price & Config -->
+              <td>
+                <strong class="text-gold d-block">{{ p.price_display }}</strong>
+                <small class="text-muted">{{ p.configuration or '-' }} &bull; {{ p.carpet_area }} sq.ft</small>
+              </td>
+
+              <!-- Submitted By -->
+              <td>
+                <strong class="text-dark d-block">{{ p.owner_name or p.contact_person or 'Admin' }}</strong>
+                <span class="badge {% if p.owner_role == 'agent' %}bg-primary{% elif p.owner_role == 'owner' %}bg-info text-dark{% else %}bg-secondary{% endif %} small">
+                  {{ (p.owner_role or 'admin')|capitalize }}
+                </span>
+                {% if p.owner_agency %}
+                  <small class="text-muted d-block">{{ p.owner_agency }}</small>
+                {% endif %}
+              </td>
+
+              <!-- MahaRERA -->
+              <td>
+                {% if p.rera_number %}
+                  <span class="badge bg-light border text-dark font-monospace small"><i class="fas fa-stamp me-1"></i>{{ p.rera_number }}</span>
+                {% else %}
+                  <span class="text-muted small">Not Provided</span>
+                {% endif %}
+              </td>
+
+              <!-- Date -->
+              <td>
+                <small class="text-muted">{{ p.created_at[:10] if p.created_at else 'Recent' }}</small>
+              </td>
+
+              <!-- Status Badge -->
+              <td>
+                <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Under Review</span>
+              </td>
+
+              <!-- Actions -->
+              <td class="text-end">
+                <div class="btn-group btn-group-sm">
+                  <!-- Approve Button -->
+                  <form action="{{ url_for('admin_property_approve', prop_id=p.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to approve and activate this listing? It will become publicly visible immediately.');">
+                    <button type="submit" class="btn btn-success btn-sm" title="Approve & Activate Listing">
+                      <i class="fas fa-check-circle me-1"></i> Approve
+                    </button>
+                  </form>
+
+                  <!-- Reject Button (Modal Trigger) -->
+                  <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal{{ p.id }}" title="Reject Listing">
+                    <i class="fas fa-times-circle me-1"></i> Reject
+                  </button>
+
+                  <!-- Edit / Inspect -->
+                  <a href="{{ url_for('admin_property_edit', prop_id=p.id) }}" class="btn btn-outline-secondary btn-sm" title="Edit / Review Details">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                </div>
+
+                <!-- Rejection Modal -->
+                <div class="modal fade" id="rejectModal{{ p.id }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content text-start">
+                      <form action="{{ url_for('admin_property_reject', prop_id=p.id) }}" method="POST">
+                        <div class="modal-header">
+                          <h5 class="modal-title text-danger"><i class="fas fa-times-circle me-2"></i>Reject Property Listing</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                          <p class="text-dark mb-2">You are rejecting listing: <strong>{{ p.title }}</strong> (ID: #{{ p.id }}).</p>
+                          <p class="text-muted small">Rejected listings remain unpublished and cannot be seen by visitors.</p>
+                          
+                          <div class="mb-3">
+                            <label class="form-label text-dark fw-bold small">Rejection Reason (visible to user):</label>
+                            <textarea name="rejection_reason" class="form-control form-control-custom" rows="3" placeholder="e.g. Incomplete address, invalid contact details, or missing RERA certificate..."></textarea>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                          <button type="submit" class="btn btn-danger btn-sm">Confirm Rejection</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="p-5 text-center text-muted">
+      <div class="mb-3 text-success fs-1">
+        <i class="fas fa-check-double"></i>
+      </div>
+      <h4 class="text-dark">All Clear! No Pending Property Approvals</h4>
+      <p class="mb-4">Every submitted property advertisement has been reviewed and processed.</p>
+      <a href="{{ url_for('admin_properties') }}" class="btn btn-outline-gold btn-sm">
+        <i class="fas fa-building me-1"></i> Browse All Active Listings
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+

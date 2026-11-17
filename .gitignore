@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+venv/
+.venv/
+env/
+
+# Database (do NOT commit production DB — use volume mounts or seed on first run)
+GRN_Property_Database/grn_properties.db
+
+# Uploaded images (too large for git)
+static/uploads/
+
+# Exports (generated files)
+GRN_Property_Database/*.csv
+GRN_Property_Database/*.xlsx
+
+# Environment
+.env
+*.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+

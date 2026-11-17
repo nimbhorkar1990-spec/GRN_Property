@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Our Real Estate Services | {{ company_name }}{% endblock %}
+
+{% block content %}
+<!-- Banner -->
+<section class="py-5" style="background: linear-gradient(180deg, #07080A 0%, #111318 100%); border-bottom: 1px solid rgba(212, 175, 55, 0.2);">
+  <div class="container py-3">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb small mb-2">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-gold">Home</a></li>
+        <li class="breadcrumb-item active text-white" aria-current="page">Our Services</li>
+      </ol>
+    </nav>
+    <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Comprehensive Real Estate Solutions</span>
+    <h1 class="font-heading display-5 mb-2">Services by {{ company_name }}</h1>
+    <div class="gold-divider-start"></div>
+  </div>
+</section>
+
+<!-- Services Grid -->
+<section class="py-5" style="background-color: #0A0B0E;">
+  <div class="container py-4">
+    <div class="row g-4">
+      
+      <!-- Service 1: Residential Buying -->
+      <div class="col-lg-4 col-md-6">
+        <div class="feature-box">
+          <div class="feature-box-icon">
+            <i class="fas fa-home"></i>
+          </div>
+          <h3 class="font-heading fs-5 mb-3 text-white">Residential Buying & Channel Partnering</h3>
+          <p class="text-muted">
+            We assist homebuyers in selecting the perfect 1, 2, 3, or 4 BHK apartments and penthouses. As authorized channel partners for leading builders, you get zero brokerage, guaranteed lowest developer rates, and dedicated site tour chauffeuring.
+          </p>
+          <ul class="list-unstyled text-muted small mt-3">
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Free site visit logistics</li>
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Unit layout & Vastu verification</li>
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Direct developer pricing</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Service 2: Commercial Leasing & Sales -->
+      <div class="col-lg-4 col-md-6">
+        <div class="feature-box">
+          <div class="feature-box-icon">
+            <i class="fas fa-building"></i>
+          </div>
+          <h3 class="font-heading fs-5 mb-3 text-white">Commercial Properties & Offices</h3>
+          <p class="text-muted">
+            From Grade-A IT offices in Hinjewadi to high-footfall retail showrooms in Balewadi High Street and Tathawade. We cater to institutional investors, IT firms, and retailers seeking long-term leases with superior rental yields.
+          </p>
+          <ul class="list-unstyled text-muted small mt-3">
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Grade-A IT SEZ and Non-SEZ spaces</li>
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> High street retail & ground floor shops</li>
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Pre-leased high-yield assets (7.5% - 9%)</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Service 3: Luxury Villas & Bungalows -->
+      <div class="col-lg-4 col-md-6">
+        <div class="feature-box">
+          <div class="feature-box-icon">
+            <i class="fas fa-landmark"></i>
+          </div>
+          <h3 class="font-heading fs-5 mb-3 text-white">Luxury Villas & Bungalows</h3>
+          <p class="text-muted">
+            Curated bespoke estates, independent triplex bungalows, and private gated community villas in prime pockets such as Baner Hills, Balewadi, and Pimple Saudagar. Uncompromising privacy and bespoke craftsmanship.
+          </p>
+          <ul class="list-unstyled text-muted small mt-3">
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Private pools & sprawling lawns</li>
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Exclusive gated society security</li>
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Ultra-high net worth concierge</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Service 4: Land & NA Plots -->
+      <div class="col-lg-4 col-md-6">
+        <div class="feature-box">
+          <div class="feature-box-icon">
+            <i class="fas fa-map"></i>
+          </div>
+          <h3 class="font-heading fs-5 mb-3 text-white">Land & Collector NA Plots</h3>
+          <p class="text-muted">
+            We source 100% title-clear Collector Sanctioned Non-Agricultural (NA) residential and commercial plots in fast-appreciating growth corridors of Punawale, Ravet, and PCMC.
+          </p>
+          <ul class="list-unstyled text-muted small mt-3">
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> 7/12 extract & search report verification</li>
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Clear demarcation with tar roads</li>
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Ready for immediate registration</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Service 5: Sell Your Property -->
+      <div class="col-lg-4 col-md-6">
+        <div class="feature-box">
+          <div class="feature-box-icon">
+            <i class="fas fa-tags"></i>
+          </div>
+          <h3 class="font-heading fs-5 mb-3 text-white">Resale & Property Selling</h3>
+          <p class="text-muted">
+            Looking to sell your flat, office, or plot in Pune? We connect property owners with pre-qualified IT professionals and investors, executing seamless paperwork and rapid closing at optimal market valuations.
+          </p>
+          <ul class="list-unstyled text-muted small mt-3">
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Accurate scientific comparative valuation</li>
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Target corporate database marketing</li>
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Smooth escrow & legal conveyance</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Service 6: Home Loans & Legal Assistance -->
+      <div class="col-lg-4 col-md-6">
+        <div class="feature-box">
+          <div class="feature-box-icon">
+            <i class="fas fa-university"></i>
+          </div>
+          <h3 class="font-heading fs-5 mb-3 text-white">Home Loans & Legal Assistance</h3>
+          <p class="text-muted">
+            Our in-house finance team partners with nationalized and private banking institutions (SBI, HDFC, ICICI, Bank of Baroda, Axis) to offer swift approvals, lowest interest rate benefits, and legal documentation scrutiny.
+          </p>
+          <ul class="list-unstyled text-muted small mt-3">
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Fastest sanction within 72 hours</li>
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Maximum funding eligibility optimization</li>
+            <li class="mb-1"><i class="fas fa-check text-gold me-2"></i> Title search and registration execution</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Call to action lead form -->
+<section class="py-5" style="background-color: #0E1015;">
+  <div class="container py-4">
+    <div class="search-card p-4 p-md-5 text-center mx-auto" style="max-width: 800px;">
+      <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Take The Next Step</span>
+      <h2 class="font-heading display-6 mb-3 text-white">Ready to Discuss Your Property Goals?</h2>
+      <div class="gold-divider"></div>
+      <p class="text-muted mb-4">
+        Our seasoned consultants will get in touch to analyze your requirement and curate the best opportunities in Pune.
+      </p>
+      <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <button class="btn btn-gold px-4 py-3" data-bs-toggle="modal" data-bs-target="#scheduleVisitModal">
+          <i class="fas fa-calendar-alt me-2"></i> Book Free Consultation
+        </button>
+        <a href="{{ whatsapp_contact_url }}" target="_blank" class="btn btn-whatsapp px-4 py-3">
+          <i class="fab fa-whatsapp me-2"></i> Chat with Senior Advisor
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Sell or Rent Your Property | {{ company_name }}{% endblock %}
+
+{% block content %}
+<!-- Banner -->
+<section class="py-5" style="background: linear-gradient(180deg, #07080A 0%, #111318 100%); border-bottom: 1px solid rgba(212, 175, 55, 0.2);">
+  <div class="container py-3">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb small mb-2">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-gold">Home</a></li>
+        <li class="breadcrumb-item active text-white" aria-current="page">Sell Property</li>
+      </ol>
+    </nav>
+    <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Direct Owner Desk</span>
+    <h1 class="font-heading display-5 mb-2">List & Sell Your Property in Pune</h1>
+    <div class="gold-divider-start"></div>
+    <p class="text-muted mb-0" style="max-width: 650px;">
+      Sell or lease your residential or commercial property at optimum market value with complete confidentiality and zero hassle.
+    </p>
+  </div>
+</section>
+
+<!-- Content & Form Section -->
+<section class="py-5" style="background-color: #0A0B0E;">
+  <div class="container py-4">
+    <div class="row g-5">
+      
+      <!-- Left Column: Owner Benefits -->
+      <div class="col-lg-5">
+        <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Why List With Us</span>
+        <h2 class="font-heading fs-2 mb-3">Reach Serious, Qualified Buyers Fast</h2>
+        <div class="gold-divider-start"></div>
+        <p class="text-muted mb-4">
+          {{ company_name }} maintains an active network of over 5,000 pre-approved IT professionals, corporate executives, doctors, and NRI investors actively seeking properties.
+        </p>
+
+        <div class="d-flex flex-column gap-3 mb-4">
+          <div class="d-flex gap-3 p-3 bg-light rounded border">
+            <div class="text-gold fs-4"><i class="fas fa-bullseye"></i></div>
+            <div>
+              <strong class="text-dark d-block">Precision Valuation</strong>
+              <small class="text-muted">We compute actual registry transaction rates to price your property competitively for maximum returns.</small>
+            </div>
+          </div>
+
+          <div class="d-flex gap-3 p-3 bg-light rounded border">
+            <div class="text-gold fs-4"><i class="fas fa-user-check"></i></div>
+            <div>
+              <strong class="text-dark d-block">Verified High-Intent Buyers</strong>
+              <small class="text-muted">Zero casual window-shoppers. Every prospect is financially pre-qualified prior to conducting physical inspections.</small>
+            </div>
+          </div>
+
+          <div class="d-flex gap-3 p-3 bg-light rounded border">
+            <div class="text-gold fs-4"><i class="fas fa-file-contract"></i></div>
+            <div>
+              <strong class="text-dark d-block">Full Legal & Paperwork Management</strong>
+              <small class="text-muted">We handle Agreement to Sale drafts, Society NOC assistance, tax deduction guidance, and Sub-Registrar execution.</small>
+            </div>
+          </div>
+        </div>
+
+        {% if not contact_settings.company_phone or contact_settings.company_phone.is_enabled %}
+        <div class="p-4 bg-light rounded border border-gold text-center">
+          <h5 class="text-dark mb-2">Prefer to Talk Directly?</h5>
+          <p class="text-muted small mb-3">Call our Senior Resale Desk Manager for an immediate discussion.</p>
+          <a href="tel:{{ company_phone_raw }}" class="btn btn-gold w-100">
+            <i class="fas fa-phone-alt me-2"></i> {{ company_phone }}
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Right Column: Submission Form -->
+      <div class="col-lg-7">
+        <div class="search-card p-4 p-md-5">
+          <h3 class="font-heading fs-4 mb-2 text-white">Property Listing Submission</h3>
+          <p class="text-muted small mb-4">Submit your property details below. Our resale team will contact you within 2 business hours.</p>
+
+          <form action="{{ url_for('handle_enquiry') }}" method="POST">
+            <input type="hidden" name="enquiry_type" value="Sell Property Request">
+            <input type="hidden" name="website_enquiry_url" value="{{ request.url if request else '' }}" class="enquiry-page-url">
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label-custom">Owner Name <span class="text-danger">*</span></label>
+                <input type="text" name="name" class="form-control form-control-custom" placeholder="e.g. Sanjay Shinde" required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">Mobile Number <span class="text-danger">*</span></label>
+                <input type="tel" name="phone" class="form-control form-control-custom" placeholder="e.g. 9822012345" required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">Email Address</label>
+                <input type="email" name="email" class="form-control form-control-custom" placeholder="sanjay@example.com">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">I Want To</label>
+                <select name="property_title" class="form-select form-select-custom">
+                  <option value="Sell Residential Property">Sell Residential Property</option>
+                  <option value="Rent / Lease Residential Property">Rent / Lease Residential Property</option>
+                  <option value="Sell Commercial Property / Office">Sell Commercial Property / Office</option>
+                  <option value="Lease Commercial Property / Office">Lease Commercial Property / Office</option>
+                  <option value="Sell Land / Plot">Sell Land / Plot</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">Property Location in Pune <span class="text-danger">*</span></label>
+                <select name="preferred_location" class="form-select form-select-custom" required>
+                  <option value="">Select Location</option>
+                  {% for loc in pune_locations %}
+                    <option value="{{ loc }}">{{ loc }}</option>
+                  {% endfor %}
+                  <option value="Other Pune Area">Other Pune Area</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">Expected Price / Rent (₹)</label>
+                <input type="text" name="budget" class="form-control form-control-custom" placeholder="e.g. ₹1.25 Cr or ₹35,000/mo">
+              </div>
+
+              <div class="col-12">
+                <label class="form-label-custom">Property Details (Project Name, BHK, Area, Floor, Age)</label>
+                <textarea name="message" class="form-control form-control-custom" rows="4" placeholder="e.g. 3 BHK in Wakad, 1350 sq.ft carpet, 7th floor, ready to move, 2 covered car parkings, society amenities available."></textarea>
+              </div>
+
+              <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-gold w-100 py-3">
+                  <i class="fas fa-check-circle me-2"></i> Submit Property For Listing
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endblock %}
+

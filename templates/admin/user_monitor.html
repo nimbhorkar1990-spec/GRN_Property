@@ -1,0 +1,372 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Monitor Account: {{ target_user.full_name or target_user.username }} | Admin Portal - {{ company_name }}{% endblock %}
+
+{% block admin_content %}
+<!-- Navigation & Title -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <a href="{{ url_for('admin_users') }}" class="text-gold text-decoration-none small">
+        <i class="fas fa-arrow-left me-1"></i> User Management
+      </a>
+      <span class="text-muted">/</span>
+      <span class="text-muted small">Account Monitor</span>
+    </div>
+    <h1 class="font-heading fs-3 text-dark mb-0">
+      <i class="fas fa-user-check text-gold me-2"></i>{{ target_user.full_name or target_user.username }}
+      {% if target_user.role == 'agent' %}
+        <span class="badge badge-role-agent ms-2"><i class="fas fa-user-tie me-1"></i>Agent</span>
+      {% elif target_user.role == 'admin' %}
+        <span class="badge badge-role-admin ms-2"><i class="fas fa-crown me-1"></i>Admin</span>
+      {% else %}
+        <span class="badge badge-role-owner ms-2"><i class="fas fa-user me-1"></i>Property Owner</span>
+      {% endif %}
+
+      {% if target_user.status == 'active' %}
+        <span class="badge badge-status-active ms-1"><i class="fas fa-circle text-success me-1" style="font-size: 0.5rem;"></i>Active</span>
+      {% else %}
+        <span class="badge badge-status-inactive ms-1"><i class="fas fa-ban text-danger me-1"></i>Suspended</span>
+      {% endif %}
+    </h1>
+  </div>
+
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-users me-1"></i> All Users
+    </a>
+    {% if target_user.id != 1 and target_user.username != 'admin' %}
+      <form method="POST" action="{{ url_for('admin_user_status', user_id=target_user.id) }}" class="d-inline"
+            onsubmit="return confirm('Toggle status for {{ target_user.username }}?');">
+        <input type="hidden" name="status" value="{% if target_user.status == 'active' %}inactive{% else %}active{% endif %}">
+        <button type="submit" class="btn {% if target_user.status == 'active' %}btn-outline-danger{% else %}btn-outline-success{% endif %} btn-sm">
+          <i class="fas {% if target_user.status == 'active' %}fa-user-slash{% else %}fa-user-check{% endif %} me-1"></i>
+          {% if target_user.status == 'active' %}Suspend Account{% else %}Activate Account{% endif %}
+        </button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Overview Stats & Info Cards -->
+<div class="row g-4 mb-4">
+  <!-- 1. Account Details Card -->
+  <div class="col-lg-4">
+    <div class="admin-card h-100">
+      <div class="admin-card-header">
+        <h4 class="admin-card-title"><i class="fas fa-id-card text-gold me-2"></i>Account Profile</h4>
+      </div>
+      <div class="p-3">
+        <div class="mb-2">
+          <span class="text-muted small d-block">Username</span>
+          <span class="text-white fw-bold">@{{ target_user.username }}</span>
+        </div>
+        <div class="mb-2">
+          <span class="text-muted small d-block">Email Address</span>
+          <span class="text-white">{{ target_user.email or 'Not provided' }}</span>
+        </div>
+        <div class="mb-2">
+          <span class="text-muted small d-block">Phone Number</span>
+          <span class="text-gold fw-bold">{{ target_user.phone or 'Not provided' }}</span>
+        </div>
+        {% if target_user.agency_name %}
+          <div class="mb-2">
+            <span class="text-muted small d-block">Agency / Firm Name</span>
+            <span class="text-white"><i class="fas fa-briefcase text-secondary me-1"></i>{{ target_user.agency_name }}</span>
+          </div>
+        {% endif %}
+        {% if target_user.rera_number %}
+          <div class="mb-2">
+            <span class="text-muted small d-block">MahaRERA Registration</span>
+            <span class="text-warning"><i class="fas fa-shield-alt me-1"></i>{{ target_user.rera_number }}</span>
+          </div>
+        {% endif %}
+        <div class="mb-2">
+          <span class="text-muted small d-block">Member Since</span>
+          <span class="text-secondary small">{{ target_user.created_at }}</span>
+        </div>
+        <div class="mb-0">
+          <span class="text-muted small d-block">Last Activity / Login</span>
+          <span class="text-dark small">{{ target_user.last_login or 'No login recorded yet' }}</span>
+        </div>
+
+        {% if target_user.notes %}
+          <div class="mt-3 p-2 bg-light rounded border">
+            <span class="text-gold small fw-bold d-block"><i class="fas fa-sticky-note me-1"></i>Admin Notes:</span>
+            <p class="small text-muted mb-0">{{ target_user.notes }}</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Quotas & Usage Progress Card -->
+  <div class="col-lg-4">
+    <div class="admin-card h-100">
+      <div class="admin-card-header">
+        <h4 class="admin-card-title"><i class="fas fa-tachometer-alt text-gold me-2"></i>Quotas & Capacity</h4>
+      </div>
+      <div class="p-3">
+        <!-- Listing Limit Bar -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted small">Property Listing Limit:</span>
+            <span class="fw-bold text-gold">
+              {{ target_user.active_properties_count or 0 }} / 
+              {% if target_user.listing_limit == -1 %}Unlimited{% else %}{{ target_user.listing_limit }}{% endif %}
+            </span>
+          </div>
+          {% if target_user.listing_limit != -1 and target_user.listing_limit > 0 %}
+            {% set pct = (target_user.active_properties_count or 0) * 100 / target_user.listing_limit %}
+            <div class="progress-limit {% if pct >= 100 %}near-limit{% endif %}">
+              <div class="progress-bar" style="width: {{ pct if pct <= 100 else 100 }}%;"></div>
+            </div>
+            <small class="text-muted" style="font-size: 0.72rem;">{{ pct|round|int }}% of allowable live ads used</small>
+          {% else %}
+            <span class="badge bg-success bg-opacity-25 text-success border border-success">Unlimited Listings Active</span>
+          {% endif %}
+        </div>
+
+        <!-- Upload Limit -->
+        <div class="mb-4">
+          <span class="text-muted small d-block">Max Image Uploads per Listing:</span>
+          <span class="text-dark fw-bold fs-5">{{ target_user.upload_limit or 10 }} Photos</span>
+        </div>
+
+        <!-- Summary Metrics -->
+        <div class="row g-2 text-center">
+          <div class="col-6">
+            <div class="p-2 bg-light rounded border">
+              <div class="fs-4 fw-bold text-dark">{{ target_user.properties_count or 0 }}</div>
+              <small class="text-muted">Total Ads Posted</small>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-2 bg-light rounded border">
+              <div class="fs-4 fw-bold text-info">{{ target_user.enquiries_count or 0 }}</div>
+              <small class="text-muted">Leads Received</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Granular Permissions Card -->
+  <div class="col-lg-4">
+    <div class="admin-card h-100">
+      <div class="admin-card-header">
+        <h4 class="admin-card-title"><i class="fas fa-user-lock text-gold me-2"></i>Assigned Permissions</h4>
+      </div>
+      <div class="p-3">
+        <ul class="list-unstyled mb-0">
+          <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary">
+            <span class="small text-white"><i class="fas fa-plus-circle text-gold me-2"></i>Post New Ads</span>
+            {% if target_user.can_post_ads %}
+              <span class="badge bg-success bg-opacity-25 text-success border border-success">Allowed</span>
+            {% else %}
+              <span class="badge bg-danger bg-opacity-25 text-danger border border-danger">Restricted</span>
+            {% endif %}
+          </li>
+          <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary">
+            <span class="small text-white"><i class="fas fa-edit text-info me-2"></i>Edit Existing Ads</span>
+            {% if target_user.can_edit_ads %}
+              <span class="badge bg-success bg-opacity-25 text-success border border-success">Allowed</span>
+            {% else %}
+              <span class="badge bg-danger bg-opacity-25 text-danger border border-danger">Restricted</span>
+            {% endif %}
+          </li>
+          <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary">
+            <span class="small text-white"><i class="fas fa-trash-alt text-danger me-2"></i>Delete Ads</span>
+            {% if target_user.can_delete_ads %}
+              <span class="badge bg-success bg-opacity-25 text-success border border-success">Allowed</span>
+            {% else %}
+              <span class="badge bg-danger bg-opacity-25 text-danger border border-danger">Restricted</span>
+            {% endif %}
+          </li>
+          <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary">
+            <span class="small text-white"><i class="fas fa-address-book text-warning me-2"></i>Access CRM Pipeline</span>
+            {% if target_user.can_access_crm %}
+              <span class="badge bg-success bg-opacity-25 text-success border border-success">Allowed</span>
+            {% else %}
+              <span class="badge bg-danger bg-opacity-25 text-danger border border-danger">Restricted</span>
+            {% endif %}
+          </li>
+          <li class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary">
+            <span class="small text-white"><i class="fas fa-file-export text-success me-2"></i>Export Lead CSV Data</span>
+            {% if target_user.can_export_leads %}
+              <span class="badge bg-success bg-opacity-25 text-success border border-success">Allowed</span>
+            {% else %}
+              <span class="badge bg-danger bg-opacity-25 text-danger border border-danger">Restricted</span>
+            {% endif %}
+          </li>
+          <li class="d-flex justify-content-between align-items-center py-2">
+            <span class="small text-white"><i class="fas fa-star text-gold me-2"></i>Set Featured Properties</span>
+            {% if target_user.can_feature_properties %}
+              <span class="badge bg-success bg-opacity-25 text-success border border-success">Allowed</span>
+            {% else %}
+              <span class="badge bg-danger bg-opacity-25 text-danger border border-danger">Restricted</span>
+            {% endif %}
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs: Listed Properties & Received Leads -->
+<div class="admin-card">
+  <div class="admin-card-header p-0">
+    <ul class="nav nav-tabs border-0 px-3 pt-2" id="monitorTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active text-dark fw-bold py-2 px-3 border-0 border-bottom border-gold border-2" 
+                id="props-tab" data-bs-toggle="tab" data-bs-target="#props-content" type="button" role="tab" aria-selected="true">
+          <i class="fas fa-building text-gold me-2"></i>Properties Posted ({{ properties|length }})
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link text-dark fw-bold py-2 px-3 border-0" 
+                id="leads-tab" data-bs-toggle="tab" data-bs-target="#leads-content" type="button" role="tab" aria-selected="false">
+          <i class="fas fa-user-friends text-info me-2"></i>Customer Leads Received ({{ enquiries|length }})
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="tab-content" id="monitorTabContent">
+    <!-- TAB 1: PROPERTIES -->
+    <div class="tab-pane fade show active" id="props-content" role="tabpanel" aria-labelledby="props-tab">
+      <div class="table-responsive">
+        <table class="table admin-table align-middle">
+          <thead>
+            <tr>
+              <th>Property Title</th>
+              <th>Category / Type</th>
+              <th>Location</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Posted Date</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if properties %}
+              {% for p in properties %}
+                <tr>
+                  <td>
+                    <div class="fw-bold text-dark">{{ p.title }}</div>
+                    {% if p.configuration %}
+                      <small class="text-muted">{{ p.configuration }} &bull; {{ p.carpet_area }} sq.ft</small>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge bg-light border text-dark">{{ p.category }}</span>
+                    <small class="text-muted d-block mt-1">{{ p.purpose }}</small>
+                  </td>
+                  <td>
+                    <span class="text-dark">{{ p.location }}</span>
+                    {% if p.sub_location %}
+                      <small class="text-muted d-block">{{ p.sub_location }}</small>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="text-gold fw-bold">{{ p.price_display or p.price|format_currency }}</span>
+                  </td>
+                  <td>
+                    {% if p.status == 'Available' %}
+                      <span class="badge badge-status-available">Available</span>
+                    {% elif p.status == 'Sold' %}
+                      <span class="badge badge-status-sold">Sold</span>
+                    {% else %}
+                      <span class="badge badge-status-rented">{{ p.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="small text-muted">{{ p.created_at[:10] }}</td>
+                  <td class="text-end">
+                    <a href="{{ url_for('property_detail', slug_or_id=p.slug) }}" target="_blank" class="btn btn-dark border-secondary btn-sm text-gold" title="View Live Page">
+                      <i class="fas fa-external-link-alt"></i>
+                    </a>
+                    <a href="{{ url_for('admin_property_edit', prop_id=p.id) }}" class="btn btn-dark border-secondary btn-sm text-info" title="Edit Listing">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="7" class="text-center py-4 text-muted">
+                  No properties currently posted by this user.
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: LEADS / ENQUIRIES -->
+    <div class="tab-pane fade" id="leads-content" role="tabpanel" aria-labelledby="leads-tab">
+      <div class="table-responsive">
+        <table class="table admin-table align-middle">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Contact Details</th>
+              <th>Property Inquired</th>
+              <th>Pipeline Status</th>
+              <th>Notes & Next Step</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if enquiries %}
+              {% for e in enquiries %}
+                <tr>
+                  <td>
+                    <div class="fw-bold text-dark">{{ e.name }}</div>
+                    <small class="badge bg-light border text-dark">{{ e.enquiry_type }}</small>
+                  </td>
+                  <td>
+                    <div class="text-gold"><i class="fas fa-phone-alt me-1"></i>{{ e.phone }}</div>
+                    {% if e.email %}
+                      <small class="text-muted"><i class="fas fa-envelope me-1"></i>{{ e.email }}</small>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="text-dark">{{ e.property_title or 'General Inquiry' }}</span>
+                  </td>
+                  <td>
+                    {% if e.status == 'New' %}
+                      <span class="badge badge-lead-new">New Lead</span>
+                    {% elif e.status == 'In Progress' or e.status == 'Contacted' %}
+                      <span class="badge badge-lead-progress">{{ e.status }}</span>
+                    {% elif 'Visit' in e.status %}
+                      <span class="badge badge-lead-visit">{{ e.status }}</span>
+                    {% elif e.status == 'Closed' or e.status == 'Booked' %}
+                      <span class="badge badge-lead-closed">{{ e.status }}</span>
+                    {% else %}
+                      <span class="badge bg-secondary">{{ e.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td style="max-width: 250px;">
+                    <div class="small text-muted text-truncate" title="{{ e.admin_notes }}">
+                      {{ e.admin_notes or 'No follow-up notes recorded.' }}
+                    </div>
+                  </td>
+                  <td class="small text-muted">{{ e.created_at[:10] }}</td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="6" class="text-center py-4 text-muted">
+                  No buyer or tenant leads received yet for this user's listings.
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

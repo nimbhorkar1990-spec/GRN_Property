@@ -1,0 +1,456 @@
+{% extends 'dashboard/base_user.html' %}
+
+{% block title %}My Dashboard | {{ company_name }}{% endblock %}
+
+{% block dashboard_content %}
+<!-- Welcome Banner -->
+<div class="search-card p-4 mb-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h1 class="font-heading fs-3 text-dark mb-0">Welcome, {{ user.full_name or user.username }}</h1>
+        {% if user.role == 'agent' %}
+          <span class="badge bg-gold text-black fw-bold">Verified Agent</span>
+        {% else %}
+          <span class="badge bg-success bg-opacity-25 text-success border border-success fw-bold">Property Owner</span>
+        {% endif %}
+      </div>
+      <p class="text-muted small mb-0">
+        {% if user.role == 'agent' and user.agency_name %}
+          <i class="fas fa-briefcase text-gold me-1"></i> {{ user.agency_name }} &bull; 
+          {% if user.rera_number %}<i class="fas fa-shield-alt text-gold ms-2 me-1"></i> MahaRERA: {{ user.rera_number }}{% endif %}
+        {% else %}
+          Manage your personal property listings, buyer inquiries, and site tour bookings.
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('user_property_add') }}" class="btn btn-gold">
+        <i class="fas fa-plus-circle me-1"></i> Post Property Ad
+      </a>
+      <a href="{{ url_for('user_crm_export') }}" class="btn btn-outline-gold">
+        <i class="fas fa-file-csv me-1"></i> Export My Leads
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Metrics Cards -->
+<div class="row g-3 mb-4">
+  <!-- My Properties -->
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-label">My Ads</div>
+        <div class="stat-icon bg-light text-gold border">
+          <i class="fas fa-home"></i>
+        </div>
+      </div>
+      <div class="stat-number text-dark">{{ stats.total_properties }}</div>
+      <small class="text-muted">Total Posted</small>
+    </div>
+  </div>
+
+  <!-- Active Listings -->
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-label">Active</div>
+        <div class="stat-icon bg-success bg-opacity-10 text-success border border-success">
+          <i class="fas fa-check-circle"></i>
+        </div>
+      </div>
+      <div class="stat-number text-success">{{ stats.active_properties }}</div>
+      <small class="text-muted">Live on Site</small>
+    </div>
+  </div>
+
+  <!-- Under Review (Pending Approval) -->
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-label">Under Review</div>
+        <div class="stat-icon bg-warning bg-opacity-10 text-warning border border-warning">
+          <i class="fas fa-hourglass-half"></i>
+        </div>
+      </div>
+      <div class="stat-number text-warning">{{ stats.pending_properties or 0 }}</div>
+      <small class="text-muted">Pending Admin</small>
+    </div>
+  </div>
+
+  <!-- Sold / Rented -->
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-label">Closed</div>
+        <div class="stat-icon bg-info bg-opacity-10 text-info border border-info">
+          <i class="fas fa-handshake"></i>
+        </div>
+      </div>
+      <div class="stat-number text-info">{{ stats.sold_rented }}</div>
+      <small class="text-muted">Sold / Rented</small>
+    </div>
+  </div>
+
+  <!-- Total Leads Received -->
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-label">Enquiries</div>
+        <div class="stat-icon bg-light text-dark border">
+          <i class="fas fa-users"></i>
+        </div>
+      </div>
+      <div class="stat-number text-dark">{{ stats.total_enquiries }}</div>
+      <small class="text-muted">Leads Received</small>
+    </div>
+  </div>
+
+  <!-- New Leads Pending -->
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-label">New Leads</div>
+        <div class="stat-icon bg-danger bg-opacity-10 text-danger border border-danger">
+          <i class="fas fa-bell"></i>
+        </div>
+      </div>
+      <div class="stat-number text-danger">{{ stats.new_enquiries }}</div>
+      <small class="text-muted">Action Required</small>
+    </div>
+  <!-- Site Visits Scheduled -->
+  <div class="col-xl-2 col-md-4 col-6">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="stat-label">Site Visits</div>
+        <div class="stat-icon bg-gold-glow text-gold border border-gold">
+          <i class="fas fa-calendar-check"></i>
+        </div>
+      </div>
+      <div class="stat-number text-gold">{{ stats.site_visits }}</div>
+      <small class="text-muted">Booked Tours</small>
+    </div>
+  </div>
+</div>
+
+<!-- Resource Quota Alert Notification -->
+{% if usage and (usage.listings.is_reached or usage.monthly_enquiries.is_reached) %}
+<div class="alert alert-warning border border-warning shadow-sm d-flex align-items-center gap-3 mb-4" role="alert">
+  <i class="fas fa-exclamation-triangle fs-3 text-warning"></i>
+  <div>
+    <h5 class="alert-heading fs-6 fw-bold mb-1">Account Resource Limit Warning</h5>
+    <p class="mb-0 small">
+      {% if usage.listings.is_reached %}
+        You have reached your assigned limit of <strong>{{ usage.listings.allowed }}</strong> active property listings. 
+      {% endif %}
+      {% if usage.monthly_enquiries.is_reached %}
+        You have reached your monthly enquiry access limit of <strong>{{ usage.monthly_enquiries.allowed }}</strong> enquiries. 
+      {% endif %}
+      Please contact the Administrator to upgrade your account quota.
+    </p>
+  </div>
+</div>
+{% endif %}
+
+<!-- Account Resource Limits & Current Usage -->
+<div class="admin-card p-4 mb-4 shadow-sm border">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3 border-bottom pb-2">
+    <div>
+      <h2 class="font-heading fs-5 text-dark mb-1">
+        <i class="fas fa-tachometer-alt text-gold me-2"></i>Account Resource Limits &amp; Current Usage
+      </h2>
+      <p class="text-muted small mb-0">Overview of your assigned feature limits and active resource utilization.</p>
+    </div>
+    <span class="badge bg-light text-muted border small">
+      {% if user.has_custom_limits %}Custom Limits Assigned{% else %}Standard Default Limits{% endif %}
+    </span>
+  </div>
+  <div class="table-responsive">
+    <table class="table admin-table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>Allowed Limit</th>
+          <th>Used</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Listings -->
+        <tr>
+          <td class="fw-semibold text-dark">
+            <i class="fas fa-home text-gold me-2"></i>Total Property Listings
+          </td>
+          <td>
+            <span class="badge bg-light text-dark border">
+              {{ usage.listings.allowed if usage else '10' }}
+            </span>
+          </td>
+          <td>
+            <strong>{{ usage.listings.used if usage else 0 }}</strong> active ({{ usage.listings.total_used if usage else 0 }} total)
+          </td>
+          <td>
+            {% if usage and usage.listings.is_reached %}
+              <span class="badge bg-danger text-white"><i class="fas fa-ban me-1"></i>Limit Reached</span>
+            {% else %}
+              <span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="fas fa-check me-1"></i>Available</span>
+            {% endif %}
+          </td>
+        </tr>
+        <!-- Monthly Enquiries -->
+        <tr>
+          <td class="fw-semibold text-dark">
+            <i class="fas fa-envelope-open-text text-info me-2"></i>Monthly Enquiries Access
+          </td>
+          <td>
+            <span class="badge bg-light text-dark border">
+              {{ usage.monthly_enquiries.allowed if usage else '100' }} / mo
+            </span>
+          </td>
+          <td>
+            <strong>{{ usage.monthly_enquiries.used if usage else 0 }}</strong> this month
+          </td>
+          <td>
+            {% if usage and usage.monthly_enquiries.is_reached %}
+              <span class="badge bg-danger text-white"><i class="fas fa-ban me-1"></i>Limit Reached</span>
+            {% else %}
+              <span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="fas fa-check me-1"></i>Available</span>
+            {% endif %}
+          </td>
+        </tr>
+        <!-- Photos Per Listing -->
+        <tr>
+          <td class="fw-semibold text-dark">
+            <i class="fas fa-images text-success me-2"></i>Photos Allowed Per Listing
+          </td>
+          <td>
+            <span class="badge bg-light text-dark border">
+              {{ usage.photos.allowed if usage else '10' }} photos / ad
+            </span>
+          </td>
+          <td>
+            Max <strong>{{ usage.photos.used if usage else 0 }}</strong> photos uploaded in any listing
+          </td>
+          <td>
+            <span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="fas fa-check me-1"></i>Permitted</span>
+          </td>
+        </tr>
+        <!-- Videos Per Listing -->
+        <tr>
+          <td class="fw-semibold text-dark">
+            <i class="fas fa-video text-danger me-2"></i>Short Videos Allowed Per Listing
+          </td>
+          <td>
+            <span class="badge bg-light text-dark border">
+              {{ usage.videos.allowed if usage else '2' }} videos / ad
+            </span>
+          </td>
+          <td>
+            Max <strong>{{ usage.videos.used if usage else 0 }}</strong> videos attached in any listing
+          </td>
+          <td>
+            <span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="fas fa-check me-1"></i>Permitted</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Two-Column Section: Recent Leads on My Properties & My Recent Properties -->
+<div class="row g-4">
+  
+  <!-- Left: Recent Enquiries Received -->
+  <div class="col-lg-8">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title"><i class="fas fa-address-book text-gold me-2"></i>Recent Enquiries on My Properties</h3>
+        <a href="{{ url_for('user_crm') }}" class="btn btn-outline-gold btn-sm">Full CRM Pipeline &rarr;</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table admin-table">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Property Inquired</th>
+              <th>Status</th>
+              <th>Follow-Up Notes</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for enq in recent_enquiries %}
+              <tr>
+                <td>
+                  <strong class="text-dark d-block">{{ enq.name }}</strong>
+                  <div class="d-flex align-items-center gap-2 mt-1">
+                    <a href="tel:{{ enq.phone }}" class="text-gold small fw-bold"><i class="fas fa-phone-alt me-1"></i>{{ enq.phone }}</a>
+                    <a href="https://wa.me/{{ enq.phone|replace('+', '')|replace(' ', '') }}?text=Hello%20{{ enq.name|urlencode }},%20I%20am%20following%20up%20on%20your%20inquiry%20regarding%20{{ enq.property_title|urlencode }}." target="_blank" class="text-success small" title="WhatsApp Chat">
+                      <i class="fab fa-whatsapp"></i>
+                    </a>
+                  </div>
+                  {% if enq.email %}
+                    <small class="text-muted d-block">{{ enq.email }}</small>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="text-gold-light fw-medium d-block">{{ enq.property_title }}</span>
+                  <small class="text-muted">{{ enq.preferred_location or 'Pune' }} &bull; {{ enq.budget or 'Standard' }}</small>
+                </td>
+                <td>
+                  {% if enq.status == 'New' %}
+                    <span class="badge-status badge-lead-new">New</span>
+                  {% elif enq.status == 'In Progress' %}
+                    <span class="badge-status badge-lead-progress">In Progress</span>
+                  {% elif enq.status == 'Site Visit Scheduled' %}
+                    <span class="badge-status badge-lead-visit">Visit Booked</span>
+                  {% else %}
+                    <span class="badge-status badge-lead-closed">Closed</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <small class="text-muted text-wrap d-block" style="max-width: 180px;">
+                    {{ enq.admin_notes if enq.admin_notes else 'No notes yet.' }}
+                  </small>
+                </td>
+                <td class="text-end">
+                  <div class="d-inline-flex gap-1">
+                    <a href="https://wa.me/{{ enq.phone|replace('+', '')|replace(' ', '') }}" target="_blank" class="btn btn-sm btn-outline-success" title="WhatsApp Client">
+                      <i class="fab fa-whatsapp"></i>
+                    </a>
+                    <a href="tel:{{ enq.phone }}" class="btn btn-sm btn-outline-info" title="Call Client">
+                      <i class="fas fa-phone"></i>
+                    </a>
+                    <button class="btn btn-sm btn-outline-gold" data-bs-toggle="modal" data-bs-target="#editLeadNotesModal" data-id="{{ enq.id }}" data-name="{{ enq.name }}" data-status="{{ enq.status }}" data-notes="{{ enq.admin_notes }}" title="Update CRM Status & Notes">
+                      <i class="fas fa-clipboard-check"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">
+                  <i class="fas fa-inbox text-secondary fs-4 d-block mb-2"></i>
+                  No customer enquiries received yet on your properties.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: My Recent Properties -->
+  <div class="col-lg-4">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title"><i class="fas fa-building text-gold me-2"></i>My Properties</h3>
+        <a href="{{ url_for('user_properties') }}" class="btn btn-outline-gold btn-sm">Manage All</a>
+      </div>
+      <div class="p-3">
+        {% for prop in recent_properties %}
+          <div class="d-flex align-items-center gap-3 p-2 mb-2 rounded bg-light border">
+            <img src="{{ prop.featured_image }}" alt="{{ prop.title }}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+            <div class="flex-grow-1 overflow-hidden">
+              <a href="{{ url_for('user_property_edit', prop_id=prop.id) }}" class="text-dark fw-semibold text-truncate d-block small">
+                {{ prop.title }}
+              </a>
+              <span class="text-gold fw-bold small">{{ prop.price_display }}</span>
+              <span class="badge {% if prop.status in ['Active', 'Available'] %}bg-success{% elif prop.status == 'Under Review' %}bg-warning text-dark{% elif prop.status == 'Rejected' %}bg-danger{% else %}bg-secondary{% endif %} ms-2" style="font-size: 0.65rem;">
+                {{ prop.status }}
+              </span>
+            </div>
+            <div>
+              <a href="{{ url_for('user_property_edit', prop_id=prop.id) }}" class="btn btn-sm btn-outline-gold" title="Edit Property">
+                <i class="fas fa-pencil-alt"></i>
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted small">
+            You haven't posted any property ads yet.
+          </div>
+        {% endfor %}
+
+        <div class="mt-3 text-center">
+          <a href="{{ url_for('user_property_add') }}" class="btn btn-gold btn-sm w-100">
+            <i class="fas fa-plus me-1"></i> Post New Property Ad
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CRM Lead Follow-up Modal -->
+<div class="modal fade" id="editLeadNotesModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-content-grn">
+      <div class="modal-header">
+        <h5 class="modal-title font-heading text-gold">
+          <i class="fas fa-clipboard-check me-2"></i>Log CRM Follow-up
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="editLeadNotesForm" method="POST" action="">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label-custom">Customer</label>
+            <div id="modalLeadCustomerName" class="text-dark fw-bold fs-6">Customer Name</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom">Lead Status</label>
+            <select name="status" id="modalLeadStatusSelect" class="form-select form-select-custom">
+              <option value="New">New Lead</option>
+              <option value="In Progress">Contacted / In Progress</option>
+              <option value="Site Visit Scheduled">Site Visit Scheduled</option>
+              <option value="Closed">Closed / Deal Booked</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom">Your Follow-Up & Negotiation Notes</label>
+            <textarea name="admin_notes" id="modalLeadNotesTextarea" class="form-control form-control-custom" rows="4" placeholder="Log details of your conversation (e.g. Spoke to customer on WhatsApp, shared brochure and confirmed site visit for Saturday 11 AM)..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold btn-sm px-3">
+            <i class="fas fa-save me-1"></i> Save CRM Notes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const modal = document.getElementById('editLeadNotesModal');
+  if (modal) {
+    modal.addEventListener('show.bs.modal', function (event) {
+      const btn = event.relatedTarget;
+      if (btn) {
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name');
+        const status = btn.getAttribute('data-status');
+        const notes = btn.getAttribute('data-notes') || '';
+
+        const form = modal.querySelector('#editLeadNotesForm');
+        form.action = `/dashboard/crm/update/${id}`;
+
+        modal.querySelector('#modalLeadCustomerName').textContent = name;
+        modal.querySelector('#modalLeadStatusSelect').value = status;
+        modal.querySelector('#modalLeadNotesTextarea').value = notes;
+      }
+    });
+  }
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,449 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Customer Leads & Enquiries | Admin Portal{% endblock %}
+
+{% block admin_content %}
+<!-- Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <h1 class="font-heading fs-3 text-dark mb-1">Customer Leads & CRM Pipeline</h1>
+    <p class="text-muted small mb-0">Track enquiries, schedule site visits, and log consultation notes.</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#manageLeadSourcesModal">
+      <i class="fas fa-bullhorn text-gold me-1"></i> Lead Source Settings
+    </button>
+    <a href="{{ url_for('admin_enquiries_export') }}" class="btn btn-gold btn-sm">
+      <i class="fas fa-file-download me-1"></i> Export All Leads (CSV)
+    </a>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="admin-card p-3 mb-4">
+  <div class="row g-2 align-items-center">
+    <div class="col-lg-3 col-md-6">
+      <div class="input-group">
+        <span class="input-group-text bg-light border text-gold"><i class="fas fa-search"></i></span>
+        <input type="text" id="adminTableSearch" class="form-control form-control-custom" placeholder="Search customer, phone, location or property..." value="{{ q or '' }}">
+      </div>
+    </div>
+    <div class="col-lg-2 col-md-6">
+      <select onchange="location = this.value;" class="form-select form-select-sm">
+        <option value="{{ url_for('admin_enquiries', status=selected_status, source='All', sort=sort, per_page=per_page, q=q) }}" {% if selected_source == 'All' or not selected_source %}selected{% endif %}>All Lead Sources</option>
+        {% for src in lead_sources %}
+          <option value="{{ url_for('admin_enquiries', status=selected_status, source=src.source_name, sort=sort, per_page=per_page, q=q) }}" {% if selected_source == src.source_name %}selected{% endif %}>{{ src.source_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-lg-2 col-md-6">
+      <div class="input-group input-group-sm">
+        <label class="input-group-text bg-light border text-gold" for="adminRecordsPerPage">
+          <i class="fas fa-list me-1"></i>Records
+        </label>
+        <select id="adminRecordsPerPage" name="per_page" class="form-select form-select-sm" onchange="location = this.value;" title="Records Per Page">
+          <option value="{{ url_for('admin_enquiries', status=selected_status, source=selected_source, sort=sort, q=q, per_page=10, page=1) }}" {% if per_page == 10 %}selected{% endif %}>10 Records</option>
+          <option value="{{ url_for('admin_enquiries', status=selected_status, source=selected_source, sort=sort, q=q, per_page=50, page=1) }}" {% if per_page == 50 %}selected{% endif %}>50 Records</option>
+          <option value="{{ url_for('admin_enquiries', status=selected_status, source=selected_source, sort=sort, q=q, per_page=100, page=1) }}" {% if per_page == 100 %}selected{% endif %}>100 Records</option>
+          <option value="{{ url_for('admin_enquiries', status=selected_status, source=selected_source, sort=sort, q=q, per_page=1000, page=1) }}" {% if per_page == 1000 %}selected{% endif %}>1000 Records</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-lg-2 col-md-6">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-light border text-gold" title="Sort By Created Date & Time">
+          <i class="fas fa-sort-amount-down"></i>
+        </span>
+        <select onchange="location = this.value;" class="form-select form-select-sm" title="Sort By Created Date & Time">
+          <option value="{{ url_for('admin_enquiries', status=selected_status, source=selected_source, sort='newest', per_page=per_page, q=q) }}" {% if sort == 'newest' or not sort %}selected{% endif %}>Newest First</option>
+          <option value="{{ url_for('admin_enquiries', status=selected_status, source=selected_source, sort='oldest', per_page=per_page, q=q) }}" {% if sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-lg-3 col-md-12 text-md-end">
+      <div class="btn-group btn-group-sm flex-wrap" role="group">
+        <a href="{{ url_for('admin_enquiries', status='All', source=selected_source, sort=sort, per_page=per_page, q=q) }}" class="btn {% if selected_status == 'All' %}btn-gold{% else %}btn-light border text-dark{% endif %}">All</a>
+        <a href="{{ url_for('admin_enquiries', status='New', source=selected_source, sort=sort, per_page=per_page, q=q) }}" class="btn {% if selected_status == 'New' %}btn-gold{% else %}btn-light border text-dark{% endif %}">New</a>
+        <a href="{{ url_for('admin_enquiries', status='In Progress', source=selected_source, sort=sort, per_page=per_page, q=q) }}" class="btn {% if selected_status == 'In Progress' %}btn-gold{% else %}btn-light border text-dark{% endif %}">Progress</a>
+        <a href="{{ url_for('admin_enquiries', status='Site Visit Scheduled', source=selected_source, sort=sort, per_page=per_page, q=q) }}" class="btn {% if selected_status == 'Site Visit Scheduled' %}btn-gold{% else %}btn-light border text-dark{% endif %}">Visits</a>
+        <a href="{{ url_for('admin_enquiries', status='Closed', source=selected_source, sort=sort, per_page=per_page, q=q) }}" class="btn {% if selected_status == 'Closed' %}btn-gold{% else %}btn-light border text-dark{% endif %}">Closed</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Enquiries Table -->
+<div class="admin-card">
+  <div class="admin-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <h3 class="admin-card-title mb-0"><i class="fas fa-address-book text-gold me-2"></i>Leads List ({{ total_count if total_count is defined else enquiries|length }})</h3>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-outline-danger btn-sm" id="btnBulkDeleteEnquiries" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteEnquiriesModal">
+        <i class="fas fa-trash-alt me-1"></i> Delete Selected (<span id="selectedEnquiriesCount">0</span>)
+      </button>
+      <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="btnDeselectAllEnquiries">
+        Deselect All
+      </button>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table admin-table align-middle">
+      <thead>
+        <tr>
+          <th style="width: 40px;" class="text-center">
+            <input type="checkbox" class="form-check-input" id="selectAllEnquiries" title="Select All Enquiries">
+          </th>
+          <th>Date & Lead ID</th>
+          <th>Customer Details</th>
+          <th>Property / Service</th>
+          <th>Lead Source</th>
+          <th>Website Enquiry URL</th>
+          <th>Budget & Location</th>
+          <th>Message & Visit Date</th>
+          <th>Status</th>
+          <th>Admin Follow-Up Notes</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for enq in enquiries %}
+          <tr class="filterable-row">
+            <td class="text-center">
+              <input type="checkbox" class="form-check-input enquiry-checkbox" value="{{ enq.id }}" title="Select Lead #{{ enq.id }}">
+            </td>
+            <td class="text-muted small" style="white-space: nowrap;">
+              <span class="badge bg-gold text-dark font-monospace mb-1 d-block" style="font-size: 0.72rem;">Lead #{{ enq.id }}</span>
+              {{ enq.created_at[:16] if enq.created_at else 'Recent' }}
+            </td>
+            <td>
+              <strong class="text-dark d-block fs-6">{{ enq.name }}</strong>
+              <div class="d-flex align-items-center gap-2 mt-1">
+                <a href="tel:{{ enq.phone }}" class="text-gold small fw-bold"><i class="fas fa-phone-alt me-1"></i>{{ enq.phone }}</a>
+                <a href="https://wa.me/{{ enq.phone|replace('+', '')|replace(' ', '') }}" target="_blank" class="text-success small" title="WhatsApp Chat">
+                  <i class="fab fa-whatsapp"></i>
+                </a>
+              </div>
+              {% if enq.email %}
+                <small class="text-muted d-block">{{ enq.email }}</small>
+              {% endif %}
+            </td>
+            <td>
+              <span class="text-gold fw-medium d-block">{{ enq.property_title }}</span>
+              <span class="badge bg-light border text-dark" style="font-size: 0.72rem;">{{ enq.enquiry_type }}</span>
+            </td>
+            <td>
+              <span class="badge bg-light border text-dark">
+                <i class="fas fa-bullhorn text-gold me-1"></i>{{ enq.lead_source or 'Website Direct' }}
+              </span>
+            </td>
+            <td>
+              {% if enq.website_enquiry_url and enq.website_enquiry_url not in ['—', '-', 'None', 'N/A', ''] %}
+                <a href="{{ enq.website_enquiry_url }}" target="_blank" class="text-gold text-truncate d-inline-block small" style="max-width: 160px;" title="{{ enq.website_enquiry_url }}">
+                  <i class="fas fa-external-link-alt fa-xs me-1"></i>{{ enq.website_enquiry_url }}
+                </a>
+              {% else %}
+                <span class="text-muted small">N/A</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="d-block text-dark">{{ enq.preferred_location or 'Pune Micro-market' }}</span>
+              <small class="text-muted">{{ enq.budget or 'Budget not specified' }}</small>
+            </td>
+            <td>
+              {% if enq.preferred_date %}
+                <div class="text-gold-light small fw-bold mb-1">
+                  <i class="fas fa-calendar-day me-1"></i> {{ enq.preferred_date }}
+                </div>
+              {% endif %}
+              <div class="text-dark small text-wrap" style="max-width: 240px;">
+                {{ enq.message or '—' }}
+              </div>
+            </td>
+            <td>
+              {% if enq.status == 'New' %}
+                <span class="badge-status badge-lead-new">New</span>
+              {% elif enq.status == 'In Progress' %}
+                <span class="badge-status badge-lead-progress">In Progress</span>
+              {% elif enq.status == 'Site Visit Scheduled' %}
+                <span class="badge-status badge-lead-visit">Visit Booked</span>
+              {% else %}
+                <span class="badge-status badge-lead-closed">Closed</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="small text-muted text-wrap" style="max-width: 220px;">
+                {{ enq.admin_notes if enq.admin_notes else 'No notes yet.' }}
+              </div>
+            </td>
+            <td class="text-end">
+              <div class="d-inline-flex gap-1">
+                <button class="btn btn-sm btn-outline-gold" data-bs-toggle="modal" data-bs-target="#editNotesModal" data-id="{{ enq.id }}" data-name="{{ enq.name }}" data-status="{{ enq.status }}" data-source="{{ enq.lead_source or 'Website Direct' }}" data-notes="{{ enq.admin_notes }}" title="Update Status & Notes">
+                  <i class="fas fa-clipboard-check"></i>
+                </button>
+                <form action="{{ url_for('admin_enquiry_delete', enquiry_id=enq.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this enquiry record?');">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Lead">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="11" class="text-center text-muted py-5">
+              <i class="fas fa-inbox display-6 text-secondary d-block mb-2"></i>
+              No customer enquiries found in this category.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if total_pages and total_pages > 1 %}
+  <div class="card-footer bg-white border-top d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 py-3 px-4">
+    <div class="small text-muted">
+      Showing Page <strong>{{ page }}</strong> of <strong>{{ total_pages }}</strong> (Total <strong>{{ total_count }}</strong> records)
+    </div>
+    <nav aria-label="Enquiries pagination">
+      <ul class="pagination pagination-sm mb-0">
+        <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('admin_enquiries', page=page-1, per_page=per_page, status=selected_status, source=selected_source, sort=sort, q=q) }}">&laquo; Prev</a>
+        </li>
+        {% for p_num in range(1, total_pages + 1) %}
+          {% if p_num == page or (p_num >= page - 2 and p_num <= page + 2) or p_num == 1 or p_num == total_pages %}
+            <li class="page-item {% if p_num == page %}active{% endif %}">
+              <a class="page-link" href="{{ url_for('admin_enquiries', page=p_num, per_page=per_page, status=selected_status, source=selected_source, sort=sort, q=q) }}">{{ p_num }}</a>
+            </li>
+          {% elif p_num == page - 3 or p_num == page + 3 %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+          {% endif %}
+        {% endfor %}
+        <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+          <a class="page-link" href="{{ url_for('admin_enquiries', page=page+1, per_page=per_page, status=selected_status, source=selected_source, sort=sort, q=q) }}">Next &raquo;</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Bulk Delete Enquiries Confirmation Modal -->
+<div class="modal fade" id="bulkDeleteEnquiriesModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-content-grn">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title font-heading text-danger">
+          <i class="fas fa-trash-alt me-2"></i>Delete Selected Enquiries
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="bulkDeleteEnquiriesForm" method="POST" action="{{ url_for('admin_enquiries_bulk_delete') }}">
+        <div class="modal-body p-4 text-center">
+          <div class="mb-3 text-danger">
+            <i class="fas fa-exclamation-triangle fa-3x"></i>
+          </div>
+          <h6 class="fw-bold text-dark mb-2">Are you sure you want to permanently delete the selected enquiry records?</h6>
+          <p class="text-muted small mb-3">
+            Total Selected: <span class="badge bg-danger fs-6" id="bulkDeleteModalCount">0</span>
+          </p>
+          <p class="text-secondary small mb-0">
+            This action cannot be undone. All selected enquiry records will be permanently removed.
+          </p>
+          <div id="bulkDeleteHiddenInputs"></div>
+        </div>
+        <div class="modal-footer border-top">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger btn-sm px-3" id="btnConfirmBulkDelete">
+            <i class="fas fa-trash-alt me-1"></i> Confirm Delete
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Lead Status & Notes Modal -->
+<div class="modal fade" id="editNotesModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-content-grn">
+      <div class="modal-header">
+        <h5 class="modal-title font-heading text-gold">
+          <i class="fas fa-clipboard-list me-2"></i>Update Lead Follow-up
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="editNotesForm" method="POST" action="">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label-custom">Customer</label>
+            <div id="modalCustomerName" class="text-dark fw-bold fs-6">Customer Name</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom">Lead Source</label>
+            <select name="lead_source" id="modalLeadSourceSelect" class="form-select form-select-custom">
+              {% for src in lead_sources %}
+                <option value="{{ src.source_name }}">{{ src.source_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom">Lead Status</label>
+            <select name="status" id="modalStatusSelect" class="form-select form-select-custom">
+              <option value="New">New</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Site Visit Scheduled">Site Visit Scheduled</option>
+              <option value="Closed">Closed / Deal Booked</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label-custom">Advisor Internal Notes</label>
+            <textarea name="admin_notes" id="modalNotesTextarea" class="form-control form-control-custom" rows="4" placeholder="Log call notes, customer preferences, scheduled visit details, builder pricing discussion..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold btn-sm px-3">
+            <i class="fas fa-save me-1"></i> Save Follow-Up Notes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Centralized CRM Lead Source Settings Modal -->
+{% include 'includes/lead_sources_modal.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const selectAll = document.getElementById('selectAllEnquiries');
+  const checkboxes = document.querySelectorAll('.enquiry-checkbox');
+  const btnBulkDelete = document.getElementById('btnBulkDeleteEnquiries');
+  const btnDeselectAll = document.getElementById('btnDeselectAllEnquiries');
+  const countSpan = document.getElementById('selectedEnquiriesCount');
+  const modalCountSpan = document.getElementById('bulkDeleteModalCount');
+  const hiddenInputsContainer = document.getElementById('bulkDeleteHiddenInputs');
+  const bulkDeleteForm = document.getElementById('bulkDeleteEnquiriesForm');
+
+  function getVisibleCheckboxes() {
+    return Array.from(checkboxes).filter(cb => {
+      const row = cb.closest('tr');
+      return row && row.style.display !== 'none';
+    });
+  }
+
+  function updateBulkSelection() {
+    const checked = Array.from(checkboxes).filter(cb => cb.checked);
+    const count = checked.length;
+    if (countSpan) countSpan.textContent = count;
+    if (modalCountSpan) modalCountSpan.textContent = count;
+
+    if (btnBulkDelete) {
+      btnBulkDelete.disabled = (count === 0);
+    }
+    if (btnDeselectAll) {
+      if (count > 0) {
+        btnDeselectAll.classList.remove('d-none');
+      } else {
+        btnDeselectAll.classList.add('d-none');
+      }
+    }
+
+    const visible = getVisibleCheckboxes();
+    if (selectAll) {
+      if (visible.length > 0 && visible.every(cb => cb.checked)) {
+        selectAll.checked = true;
+        selectAll.indeterminate = false;
+      } else if (visible.some(cb => cb.checked)) {
+        selectAll.checked = false;
+        selectAll.indeterminate = true;
+      } else {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+      }
+    }
+  }
+
+  if (selectAll) {
+    selectAll.addEventListener('change', function() {
+      const visible = getVisibleCheckboxes();
+      visible.forEach(cb => { cb.checked = selectAll.checked; });
+      updateBulkSelection();
+    });
+  }
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', updateBulkSelection);
+  });
+
+  if (btnDeselectAll) {
+    btnDeselectAll.addEventListener('click', function() {
+      checkboxes.forEach(cb => { cb.checked = false; });
+      if (selectAll) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+      }
+      updateBulkSelection();
+    });
+  }
+
+  // Populate hidden inputs when modal opens or form submits
+  if (bulkDeleteForm) {
+    bulkDeleteForm.addEventListener('submit', function(e) {
+      hiddenInputsContainer.innerHTML = '';
+      const checked = Array.from(checkboxes).filter(cb => cb.checked);
+      if (checked.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one enquiry record to delete.');
+        return false;
+      }
+      checked.forEach(cb => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'enquiry_ids';
+        input.value = cb.value;
+        hiddenInputsContainer.appendChild(input);
+      });
+    });
+  }
+
+  const bulkModalElem = document.getElementById('bulkDeleteEnquiriesModal');
+  if (bulkModalElem) {
+    bulkModalElem.addEventListener('show.bs.modal', function() {
+      const checked = Array.from(checkboxes).filter(cb => cb.checked);
+      if (modalCountSpan) modalCountSpan.textContent = checked.length;
+    });
+  }
+
+  // Live filter integration: uncheck hidden rows when search filters change
+  const searchInput = document.getElementById('adminTableSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      setTimeout(updateBulkSelection, 100);
+    });
+  }
+
+  // Edit Notes modal population
+  const editNotesModal = document.getElementById('editNotesModal');
+  if (editNotesModal) {
+    editNotesModal.addEventListener('show.bs.modal', function(event) {
+      const btn = event.relatedTarget;
+      if (!btn) return;
+      const id = btn.getAttribute('data-id');
+      const name = btn.getAttribute('data-name');
+      const status = btn.getAttribute('data-status');
+      const source = btn.getAttribute('data-source');
+      const notes = btn.getAttribute('data-notes');
+
+      document.getElementById('modalCustomerName').textContent = name;
+      document.getElementById('modalStatusSelect').value = status;
+      document.getElementById('modalLeadSourceSelect').value = source;
+      document.getElementById('modalNotesTextarea').value = (notes && notes !== 'None') ? notes : '';
+      document.getElementById('editNotesForm').action = '/admin/enquiries/status/' + id;
+    });
+  }
+});
+</script>
+{% endblock %}
+

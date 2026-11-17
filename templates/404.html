@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Page Not Found | {{ company_name }}{% endblock %}
+
+{% block content %}
+<section class="py-5 text-center my-5">
+  <div class="container py-5">
+    <div class="search-card p-5 mx-auto" style="max-width: 650px;">
+      <h1 class="display-1 font-heading text-gold mb-2">404</h1>
+      <h2 class="font-heading fs-3 text-white mb-3">Property or Page Not Found</h2>
+      <div class="gold-divider"></div>
+      <p class="text-muted mb-4">
+        The listing or page you are looking for may have been sold, rented out, or moved. Let us help you find another dream property in Pune.
+      </p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="{{ url_for('index') }}" class="btn btn-gold">
+          <i class="fas fa-home me-2"></i> Return Home
+        </a>
+        <a href="{{ url_for('properties') }}" class="btn btn-outline-gold">
+          <i class="fas fa-search me-2"></i> Browse All Properties
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

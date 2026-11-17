@@ -1,0 +1,739 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ company_name }} | Find Your Dream Property | Premier Real Estate Portal{% endblock %}
+
+{% block content %}
+<!-- 1. Hero Section -->
+<section class="hero-section text-center position-relative">
+  <div class="hero-overlay"></div>
+  <div class="container position-relative z-2">
+    <div class="hero-badge">
+      <i class="fas fa-crown text-gold"></i> Premier Real Estate Partner
+    </div>
+    <h1 class="hero-title">
+      Find Your Dream Property With <br class="d-none d-md-block">
+      <span class="text-gold">{{ company_name }}</span>
+    </h1>
+    <p class="hero-subtitle">
+      {{ company_tagline }} — Offering verified residential flats, luxury villas, corporate office spaces, and
+      investment plots across West Pune corridor.
+    </p>
+
+    <!-- Property Search Bar Card -->
+    {% if is_visible('section_hero_search') %}
+    <div class="search-card mx-auto text-start" style="max-width: 1020px;">
+      <!-- Buy / Rent Selector Tabs -->
+      <ul class="nav search-tabs mb-3" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active hero-purpose-tab" href="#" data-purpose="Buy">
+            <i class="fas fa-home me-1"></i> Buy Property
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link hero-purpose-tab" href="#" data-purpose="Rent">
+            <i class="fas fa-key me-1"></i> Rent Property
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link hero-purpose-tab" href="#" data-purpose="Commercial">
+            <i class="fas fa-building me-1"></i> Commercial Spaces
+          </a>
+        </li>
+      </ul>
+
+      <form action="{{ url_for('properties') }}" method="GET" class="row g-3 align-items-end">
+        <input type="hidden" name="purpose" id="heroSearchPurpose" value="Buy">
+
+        <!-- Location Dropdown -->
+        <div class="col-lg-3 col-md-6">
+          <label class="form-label-custom"><i class="fas fa-map-marker-alt text-gold me-1"></i> Property
+            Location</label>
+          <select name="location" class="form-select form-select-custom">
+            <option value="All">All Pune Locations</option>
+            {% for loc in pune_locations %}
+            <option value="{{ loc }}">{{ loc }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Property Category / Type -->
+        <div class="col-lg-3 col-md-6">
+          <label class="form-label-custom"><i class="fas fa-layer-group text-gold me-1"></i> Property Type</label>
+          <select name="category" class="form-select form-select-custom">
+            <option value="All">All Categories</option>
+            {% for cat in property_categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Configuration BHK -->
+        <div class="col-lg-2 col-md-6">
+          <label class="form-label-custom"><i class="fas fa-bed text-gold me-1"></i> Config / BHK</label>
+          <select name="bhk" class="form-select form-select-custom">
+            <option value="All">Any Config</option>
+            <option value="1 BHK">1 BHK</option>
+            <option value="2 BHK">2 BHK</option>
+            <option value="3 BHK">3 BHK</option>
+            <option value="4 BHK">4 BHK+</option>
+            <option value="Villa">Villa / Bungalow</option>
+            <option value="Commercial">Office / Shop</option>
+            <option value="Plot">Land / Plot</option>
+          </select>
+        </div>
+
+        <!-- Budget Range -->
+        <div class="col-lg-2 col-md-6">
+          <label class="form-label-custom"><i class="fas fa-rupee-sign text-gold me-1"></i> Max Budget</label>
+          <select name="max_price" class="form-select form-select-custom">
+            <option value="">Any Budget</option>
+            <option value="5000000">Up to ₹50 Lakhs</option>
+            <option value="8000000">Up to ₹80 Lakhs</option>
+            <option value="12000000">Up to ₹1.2 Cr</option>
+            <option value="20000000">Up to ₹2.0 Cr</option>
+            <option value="35000000">Up to ₹3.5 Cr</option>
+            <option value="50000000">Above ₹3.5 Cr</option>
+          </select>
+        </div>
+
+        <!-- Search Button -->
+        <div class="col-lg-2 col-md-12">
+          <button type="submit" class="btn btn-gold w-100 py-3">
+            <i class="fas fa-search me-1"></i> Search
+          </button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+
+    <!-- Quick Stats Bar -->
+    {% if is_visible('section_quick_stats') %}
+    <div class="row g-4 mt-5 pt-3 justify-content-center text-center">
+      <div class="col-6 col-md-3">
+        <h3 class="font-heading text-gold mb-1 fs-2">₹250+ Cr</h3>
+        <p class="text-muted small text-uppercase letter-spacing-1">Properties Consulted</p>
+      </div>
+      <div class="col-6 col-md-3">
+        <h3 class="font-heading text-gold mb-1 fs-2">1,200+</h3>
+        <p class="text-muted small text-uppercase letter-spacing-1">Delighted Families</p>
+      </div>
+      <div class="col-6 col-md-3">
+        <h3 class="font-heading text-gold mb-1 fs-2">100%</h3>
+        <p class="text-muted small text-uppercase letter-spacing-1">RERA Verified Titles</p>
+      </div>
+      <div class="col-6 col-md-3">
+        <h3 class="font-heading text-gold mb-1 fs-2">15+ Yrs</h3>
+        <p class="text-muted small text-uppercase letter-spacing-1">Pune Market Mastery</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- 2. Featured Properties Section -->
+{% if is_visible('section_featured_properties') %}
+<section class="py-5" style="background-color: #0A0B0E;">
+  <div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
+      <div>
+        <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Handpicked Portfolio</span>
+        <h2 class="font-heading display-6 mb-2">Featured Properties</h2>
+        <div class="gold-divider-start"></div>
+      </div>
+      <div>
+        <a href="{{ url_for('properties') }}" class="btn btn-outline-gold">
+          View All Properties <i class="fas fa-arrow-right ms-2"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      {% for prop in featured_properties %}
+      <div class="col-lg-4 col-md-6">
+        <div class="property-card">
+          <!-- Property Image & Badges -->
+          <div class="property-img-wrapper">
+            <img src="{{ prop.featured_image }}" alt="{{ prop.title }}" class="property-img" loading="lazy">
+            <div class="property-badges-top">
+              <span class="badge-purpose">For {{ prop.purpose }}</span>
+              {% if prop.featured %}
+              <span class="badge-featured"><i class="fas fa-star me-1"></i> Featured</span>
+              {% endif %}
+            </div>
+            <div class="property-price-tag">
+              {{ prop.price_display }}
+            </div>
+          </div>
+
+          <!-- Property Card Body -->
+          <div class="property-body">
+            <div class="property-category">{{ prop.category }}</div>
+            <h3 class="property-title">
+              <a href="{{ url_for('property_detail', slug_or_id=prop.slug) }}">{{ prop.title }}</a>
+            </h3>
+            <div class="property-location">
+              <span class="badge bg-secondary-subtle text-light me-1"><i class="fas fa-city text-gold me-1"></i>{{
+                prop.city or 'Pune' }}</span>
+              <i class="fas fa-map-marker-alt text-gold ms-1"></i> {{ prop.sub_location or prop.location }}
+            </div>
+
+            <!-- Specs Highlights -->
+            <div class="property-features">
+              <div class="feature-item">
+                <i class="fas fa-bed"></i>
+                <span>{{ prop.configuration }}</span>
+              </div>
+              <div class="feature-item">
+                <i class="fas fa-vector-square"></i>
+                <span>{{ prop.carpet_area }} sq.ft</span>
+              </div>
+              <div class="feature-item">
+                <i class="fas fa-building"></i>
+                <span>{{ prop.possession_status or 'Ready' }}</span>
+              </div>
+            </div>
+
+            <p class="property-desc-short">{{ prop.description }}</p>
+
+            <!-- Actions -->
+            <div class="property-actions">
+              <a href="{{ url_for('property_detail', slug_or_id=prop.slug) }}" class="btn btn-outline-gold">
+                <i class="fas fa-eye me-1"></i> Details
+              </a>
+              <button class="btn btn-gold" data-bs-toggle="modal" data-bs-target="#scheduleVisitModal"
+                data-property-id="{{ prop.id }}" data-property-title="{{ prop.title }}">
+                <i class="fas fa-calendar-check me-1"></i> Enquire
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 3. Property Categories Section -->
+{% if is_visible('section_property_categories') %}
+<section class="py-5" style="background-color: #0E1015;">
+  <div class="container py-4">
+    <div class="text-center mb-5">
+      <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Diverse Real Estate Portfolio</span>
+      <h2 class="font-heading display-6 mb-2">Explore Property Categories</h2>
+      <div class="gold-divider"></div>
+      <p class="text-muted mx-auto" style="max-width: 600px;">
+        Whether you are searching for a high-rise residence, ultra-luxury bungalow, or high-yield commercial IT asset in
+        Pune.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <!-- 1. Residential -->
+      <div class="col-6 col-lg-3 col-md-4">
+        <a href="{{ url_for('properties', type='Residential') }}" class="category-card">
+          <div class="category-icon-wrapper">
+            <i class="fas fa-city"></i>
+          </div>
+          <h4 class="category-title">Residential Properties</h4>
+          <span class="category-subtitle">Homes & Penthouses</span>
+        </a>
+      </div>
+
+      <!-- 2. Commercial -->
+      <div class="col-6 col-lg-3 col-md-4">
+        <a href="{{ url_for('properties', type='Commercial') }}" class="category-card">
+          <div class="category-icon-wrapper">
+            <i class="fas fa-building"></i>
+          </div>
+          <h4 class="category-title">Commercial Properties</h4>
+          <span class="category-subtitle">Offices, Hubs & Floors</span>
+        </a>
+      </div>
+
+      <!-- 3. Luxury Villas -->
+      <div class="col-6 col-lg-3 col-md-4">
+        <a href="{{ url_for('properties', category='Luxury Villas') }}" class="category-card">
+          <div class="category-icon-wrapper">
+            <i class="fas fa-landmark"></i>
+          </div>
+          <h4 class="category-title">Luxury Villas</h4>
+          <span class="category-subtitle">Gated Estates & Mansions</span>
+        </a>
+      </div>
+
+      <!-- 4. Apartments & Flats -->
+      <div class="col-6 col-lg-3 col-md-4">
+        <a href="{{ url_for('properties', category='Apartments and Flats') }}" class="category-card">
+          <div class="category-icon-wrapper">
+            <i class="fas fa-door-open"></i>
+          </div>
+          <h4 class="category-title">Apartments and Flats</h4>
+          <span class="category-subtitle">1, 2, 3 & 4 BHK Smart Homes</span>
+        </a>
+      </div>
+
+      <!-- 5. Bungalows -->
+      <div class="col-6 col-lg-3 col-md-4">
+        <a href="{{ url_for('properties', category='Bungalows') }}" class="category-card">
+          <div class="category-icon-wrapper">
+            <i class="fas fa-house-user"></i>
+          </div>
+          <h4 class="category-title">Bungalows</h4>
+          <span class="category-subtitle">Independent Living</span>
+        </a>
+      </div>
+
+      <!-- 6. Land and Plots -->
+      <div class="col-6 col-lg-3 col-md-4">
+        <a href="{{ url_for('properties', category='Land and Plots') }}" class="category-card">
+          <div class="category-icon-wrapper">
+            <i class="fas fa-map"></i>
+          </div>
+          <h4 class="category-title">Land and Plots</h4>
+          <span class="category-subtitle">Collector NA Sanctioned</span>
+        </a>
+      </div>
+
+      <!-- 7. Office Spaces -->
+      <div class="col-6 col-lg-3 col-md-4">
+        <a href="{{ url_for('properties', category='Office Spaces') }}" class="category-card">
+          <div class="category-icon-wrapper">
+            <i class="fas fa-briefcase"></i>
+          </div>
+          <h4 class="category-title">Office Spaces</h4>
+          <span class="category-subtitle">IT Parks & Corporate</span>
+        </a>
+      </div>
+
+      <!-- 8. Shops -->
+      <div class="col-6 col-lg-3 col-md-4">
+        <a href="{{ url_for('properties', category='Shops') }}" class="category-card">
+          <div class="category-icon-wrapper">
+            <i class="fas fa-store"></i>
+          </div>
+          <h4 class="category-title">Shops & Showrooms</h4>
+          <span class="category-subtitle">Highway Touch & High Street</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 4. Pune Micro-Markets Spotlight -->
+{% if is_visible('section_pune_locations') %}
+<section class="py-5" style="background-color: #0A0B0E;">
+  <div class="container py-4">
+    <div class="text-center mb-5">
+      <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Prime Locations</span>
+      <h2 class="font-heading display-6 mb-2">Pune Real Estate Focus</h2>
+      <div class="gold-divider"></div>
+      <p class="text-muted mx-auto" style="max-width: 650px;">
+        Specialized market intelligence and verified developer inventories across Western Pune's high-appreciation
+        corridors.
+      </p>
+    </div>
+
+    <div class="row g-3">
+      {% for loc in pune_locations %}
+      <div class="col-lg-4 col-md-6">
+        <a href="{{ url_for('location_view', loc_name=loc) }}" class="location-pill-card text-decoration-none">
+          <div class="d-flex align-items-center gap-3">
+            <i class="fas fa-map-pin text-gold fs-5"></i>
+            <div>
+              <strong class="d-block text-white">{{ loc }}</strong>
+              <small class="text-muted">High Rental Yield & Capital Growth</small>
+            </div>
+          </div>
+          <i class="fas fa-chevron-right text-gold"></i>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 5. Why Choose Real Estate -->
+{% if is_visible('section_why_choose_us') %}
+<section class="py-5" style="background-color: #0E1015;">
+  <div class="container py-4">
+    <div class="text-center mb-5">
+      <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">The {{ company_name }} Advantage</span>
+      <h2 class="font-heading display-6 mb-2">Why Choose {{ company_name }}?</h2>
+      <div class="gold-divider"></div>
+      <p class="text-muted mx-auto" style="max-width: 680px;">
+        We eliminate real estate uncertainty through transparent advisory, direct builder pricing, and end-to-end legal
+        verification.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-4 col-md-6">
+        <div class="feature-box">
+          <div class="feature-box-icon">
+            <i class="fas fa-award"></i>
+          </div>
+          <h4 class="font-heading fs-5 mb-3">Certified Channel Partner</h4>
+          <p class="text-muted">
+            Directly empanelled with Grade-A real estate developers. Enjoy exclusive pre-launch booking rates, special
+            developer discounts, and zero brokerage on new projects.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <div class="feature-box">
+          <div class="feature-box-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h4 class="font-heading fs-5 mb-3">100% MahaRERA & Title Clear</h4>
+          <p class="text-muted">
+            Every property listed on {{ company_name }} undergoes rigorous legal scrutiny, MahaRERA compliance
+            validation, title clearance, and environmental clearance verification.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <div class="feature-box">
+          <div class="feature-box-icon">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <h4 class="font-heading fs-5 mb-3">Dedicated Advisory Desk</h4>
+          <p class="text-muted">
+            A single senior property specialist guides you through site visits, layout selection, price negotiation,
+            registration paperwork, and possession assistance.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <div class="feature-box">
+          <div class="feature-box-icon">
+            <i class="fas fa-hand-holding-usd"></i>
+          </div>
+          <h4 class="font-heading fs-5 mb-3">Home Loan & Legal Aid</h4>
+          <p class="text-muted">
+            Tie-ups with leading national banks (SBI, HDFC, ICICI, Axis) for fastest loan sanctions at lowest interest
+            rates, with complete legal documentation support.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <div class="feature-box">
+          <div class="feature-box-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h4 class="font-heading fs-5 mb-3">High ROI & Rental Yields</h4>
+          <p class="text-muted">
+            Strategic investment curation for IT professionals and HNIs targeting high capital appreciation near
+            Hinjewadi IT Park and Pune Metro stations.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <div class="feature-box">
+          <div class="feature-box-icon">
+            <i class="fas fa-globe-asia"></i>
+          </div>
+          <h4 class="font-heading fs-5 mb-3">Dedicated NRI Services Desk</h4>
+          <p class="text-muted">
+            Seamless remote consultations, video walkthroughs, Power of Attorney assistance, and turnkey tenant
+            management for NRI property investors.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 6. Our Services Section -->
+{% if is_visible('section_our_services') %}
+<section class="py-5" style="background-color: #0A0B0E;">
+  <div class="container py-4">
+    <div class="text-center mb-5">
+      <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">End-to-End Real Estate Solutions</span>
+      <h2 class="font-heading display-6 mb-2">Our Real Estate Services</h2>
+      <div class="gold-divider"></div>
+    </div>
+
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-6">
+        <div class="p-4 p-lg-5 bg-light rounded border">
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="bg-gold p-3 rounded text-black fs-4">
+              <i class="fas fa-handshake"></i>
+            </div>
+            <div>
+              <h3 class="font-heading fs-4 mb-1">Channel Partner Services</h3>
+              <p class="text-gold small mb-0">Authorized Partner for Top Pune Builders</p>
+            </div>
+          </div>
+          <p class="text-muted mb-4">
+            {{ company_name }} bridges the gap between home seekers and top real estate developers. We provide unbiased
+            recommendations, curated project comparisons, and transparent price negotiations without any hidden charges.
+          </p>
+          <ul class="list-unstyled text-dark">
+            <li class="mb-2"><i class="fas fa-check-circle text-gold me-2"></i> Guaranteed Lowest Builder Direct Price
+            </li>
+            <li class="mb-2"><i class="fas fa-check-circle text-gold me-2"></i> Free VIP Chauffeur-driven Site Visits
+            </li>
+            <li class="mb-2"><i class="fas fa-check-circle text-gold me-2"></i> Complete Payment Schedule Customization
+            </li>
+            <li class="mb-2"><i class="fas fa-check-circle text-gold me-2"></i> Hassle-Free Stamp Duty & Registration
+              Execution</li>
+          </ul>
+          <a href="{{ url_for('contact') }}" class="btn btn-gold mt-3">Speak With Channel Partner</a>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="p-4 bg-light rounded border h-100">
+              <i class="fas fa-key text-gold fs-3 mb-3"></i>
+              <h5 class="text-dark">Buying Assistance</h5>
+              <p class="text-muted small mb-0">Shortlisting, technical site inspections, and possession handovers.</p>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-4 bg-light rounded border h-100">
+              <i class="fas fa-tags text-gold fs-3 mb-3"></i>
+              <h5 class="text-dark">Sell & Resale</h5>
+              <p class="text-muted small mb-0">Market valuation, qualified corporate buyer outreach, and fast closing.
+              </p>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-4 bg-light rounded border h-100">
+              <i class="fas fa-building text-gold fs-3 mb-3"></i>
+              <h5 class="text-dark">Commercial Leasing</h5>
+              <p class="text-muted small mb-0">IT offices, co-working suites, and high street retail outlets.</p>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="p-4 bg-light rounded border h-100">
+              <i class="fas fa-file-contract text-gold fs-3 mb-3"></i>
+              <h5 class="text-dark">Home Loan Support</h5>
+              <p class="text-muted small mb-0">Fastest sanction with SBI, HDFC, ICICI, and competitive interest rates.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 7. Customer Testimonials -->
+{% if is_visible('section_testimonials') %}
+<section class="py-5" style="background-color: #0E1015;">
+  <div class="container py-4">
+    <div class="text-center mb-5">
+      <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Client Experiences</span>
+      <h2 class="font-heading display-6 mb-2">What Our Clients Say</h2>
+      <div class="gold-divider"></div>
+      <p class="text-muted mx-auto" style="max-width: 600px;">
+        Read reviews from tech leaders, doctors, and business owners who bought their dream properties with Real Estate.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-4 col-md-6">
+        <div class="testimonial-card">
+          <i class="fas fa-quote-left quote-icon"></i>
+          <div class="testimonial-stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+              class="fas fa-star"></i><i class="fas fa-star"></i>
+          </div>
+          <p class="testimonial-text">
+            "We were looking for a 3 BHK in Baner with good connectivity to Hinjewadi Phase 1. Real Estate arranged site
+            visits for three shortlisted projects and negotiated a remarkable direct-builder deal for us. Their
+            transparency and legal guidance were exceptional."
+          </p>
+          <div class="testimonial-author">Sameer & Sneha Deshpande</div>
+          <div class="testimonial-role">Principal Software Architect, Hinjewadi</div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <div class="testimonial-card">
+          <i class="fas fa-quote-left quote-icon"></i>
+          <div class="testimonial-stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+              class="fas fa-star"></i><i class="fas fa-star"></i>
+          </div>
+          <p class="testimonial-text">
+            "As an NRI living in Dubai, buying an investment property in Wakad was daunting. The team at Real Estate
+            conducted virtual walkthroughs, handled all document verifications, and even assisted with tenant leasing
+            immediately upon handover. Highly recommended!"
+          </p>
+          <div class="testimonial-author">Dr. Rohit Agnihotri</div>
+          <div class="testimonial-role">Cardiologist & Real Estate Investor (UAE)</div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6">
+        <div class="testimonial-card">
+          <i class="fas fa-quote-left quote-icon"></i>
+          <div class="testimonial-stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i
+              class="fas fa-star"></i><i class="fas fa-star"></i>
+          </div>
+          <p class="testimonial-text">
+            "Acquiring our 2,400 sq.ft commercial showroom near Balewadi High Street was smooth and seamless. Real
+            Estate understood our brand requirements and ensured clear titles and zero encumbrances. A truly
+            professional team."
+          </p>
+          <div class="testimonial-author">Meera K. Singhal</div>
+          <div class="testimonial-role">Managing Director, LuxStyle Retail Pune</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 8. Contact & Enquiry Section -->
+{% if is_visible('section_cta_banner') %}
+<section class="py-5" style="background-color: #0A0B0E;">
+  <div class="container py-4">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-5">
+        <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Connect With Us</span>
+        <h2 class="font-heading display-6 mb-3">Speak With Our {{ company_name }} Advisor</h2>
+        <div class="gold-divider-start"></div>
+        <p class="text-muted mb-4">
+          Whether you are looking to purchase your dream home, invest in commercial real estate, or list your property
+          in Pune, our expert team is ready to assist you.
+        </p>
+
+        <div class="d-flex flex-column gap-3 mb-4">
+          {% if not contact_settings.company_phone or contact_settings.company_phone.is_enabled %}
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-gold-glow p-3 rounded-circle text-gold fs-5">
+              <i class="{{ contact_settings.company_phone.icon if contact_settings.company_phone else 'fas fa-phone-alt' }}"></i>
+            </div>
+            <div>
+              <span class="text-muted small d-block">{{ contact_settings.company_phone.label if contact_settings.company_phone else 'Direct Helpline' }}</span>
+              <a href="tel:{{ company_phone_raw }}" class="text-white fw-bold fs-5">{{ company_phone }}</a>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if not contact_settings.company_whatsapp or contact_settings.company_whatsapp.is_enabled %}
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-gold-glow p-3 rounded-circle text-gold fs-5">
+              <i class="{{ contact_settings.company_whatsapp.icon if contact_settings.company_whatsapp else 'fab fa-whatsapp' }}"></i>
+            </div>
+            <div>
+              <span class="text-muted small d-block">{{ contact_settings.company_whatsapp.label if contact_settings.company_whatsapp else 'Instant WhatsApp Support' }}</span>
+              <a href="{{ whatsapp_contact_url }}" target="_blank" class="text-white fw-bold fs-5">{{ company_whatsapp }}</a>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if not contact_settings.corporate_office or contact_settings.corporate_office.is_enabled %}
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-gold-glow p-3 rounded-circle text-gold fs-5">
+              <i class="{{ contact_settings.corporate_office.icon if contact_settings.corporate_office else 'fas fa-map-marked-alt' }}"></i>
+            </div>
+            <div>
+              <span class="text-muted small d-block">{{ contact_settings.corporate_office.label if contact_settings.corporate_office else 'Pune Corporate Office' }}</span>
+              <span class="text-light">{{ company_address }}</span>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Lead Capture Form Card -->
+      <div class="col-lg-7">
+        <div class="search-card p-4 p-md-5">
+          <h3 class="font-heading fs-4 mb-2 text-white">Send an Enquiry</h3>
+          <p class="text-muted small mb-4">Fill in your requirements below. Our senior advisor will call you within 15
+            minutes.</p>
+
+          <form action="{{ url_for('handle_enquiry') }}" method="POST">
+            <input type="hidden" name="enquiry_type" value="Homepage Lead Form">
+            <input type="hidden" name="property_title" value="General Pune Consultation">
+            <input type="hidden" name="website_enquiry_url" value="{{ request.url if request else '' }}"
+              class="enquiry-page-url">
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label-custom">Your Name <span class="text-danger">*</span></label>
+                <input type="text" name="name" class="form-control form-control-custom" placeholder="e.g. Anand Joshi"
+                  required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">Mobile Number <span class="text-danger">*</span></label>
+                <input type="tel" name="phone" class="form-control form-control-custom" placeholder="e.g. 9822012345"
+                  required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">Email Address</label>
+                <input type="email" name="email" class="form-control form-control-custom"
+                  placeholder="anand@example.com">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">Preferred Location</label>
+                <select name="preferred_location" class="form-select form-select-custom">
+                  <option value="">Any Pune Micro-Market</option>
+                  {% for loc in pune_locations %}
+                  <option value="{{ loc }}">{{ loc }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">Budget Range</label>
+                <select name="budget" class="form-select form-select-custom">
+                  <option value="₹50L - ₹80L">₹50 Lakhs - ₹80 Lakhs</option>
+                  <option value="₹80L - ₹1.2 Cr">₹80 Lakhs - ₹1.2 Cr</option>
+                  <option value="₹1.2 Cr - ₹2 Cr">₹1.2 Cr - ₹2.0 Cr</option>
+                  <option value="₹2 Cr - ₹3.5 Cr">₹2.0 Cr - ₹3.5 Cr</option>
+                  <option value="₹3.5 Cr+">Above ₹3.5 Cr</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">Property Interested In</label>
+                <select name="property_title" class="form-select form-select-custom">
+                  <option value="Residential 2/3 BHK Flat">Residential 2/3 BHK Flat</option>
+                  <option value="Luxury Villa / Bungalow">Luxury Villa / Bungalow</option>
+                  <option value="Commercial Office Space">Commercial Office Space</option>
+                  <option value="Retail Shop / Showroom">Retail Shop / Showroom</option>
+                  <option value="Gated Villa Plot">Gated Villa Plot</option>
+                </select>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label-custom">Your Message / Requirements</label>
+                <textarea name="message" class="form-control form-control-custom" rows="3"
+                  placeholder="Tell us what you are looking for (e.g. Ready to move 3 BHK near Wakad with 2 car parkings)..."></textarea>
+              </div>
+
+              <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-gold w-100 py-3">
+                  <i class="fas fa-paper-plane me-2"></i> Submit Enquiry & Get Best Deals
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

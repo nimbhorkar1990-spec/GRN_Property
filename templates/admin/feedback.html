@@ -1,0 +1,1127 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Client Enquiry Feedback Management | Admin Portal - {{ company_name }}{% endblock %}
+
+{% block admin_content %}
+<!-- Header & Action Toolbar -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <h1 class="font-heading fs-3 text-dark mb-1">
+      <i class="fas fa-comments text-gold me-2"></i>Client Enquiry Feedback Management
+    </h1>
+    <p class="text-muted small mb-0">Record, track, and analyze client feedback across property enquiries independently from Lead CRM.</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+    <button type="button" class="btn btn-primary btn-sm" id="btnRefreshEnquiries" title="Fetch newly received customer enquiries directly from website into Feedback">
+      <i class="fas fa-sync-alt me-1" id="refreshIcon"></i> Refresh Enquiries
+    </button>
+    <button type="button" class="btn btn-gold btn-sm" data-bs-toggle="modal" data-bs-target="#addFeedbackModal">
+      <i class="fas fa-plus-circle me-1"></i> Add Feedback
+    </button>
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#manageLeadSourcesModal" title="Manage CRM Lead Sources">
+      <i class="fas fa-bullhorn text-gold me-1"></i> Lead Source Settings
+    </button>
+    <a href="{{ url_for('admin_feedback_export', q=q, project=project, user=user, source=selected_source, date_from=date_from, date_to=date_to) }}" class="btn btn-success btn-sm">
+      <i class="fas fa-file-excel me-1"></i> Download Excel (.xlsx)
+    </a>
+    <button type="button" class="btn btn-primary btn-sm" id="btnSendEmail" data-bs-toggle="modal" data-bs-target="#sendEmailModal">
+      <i class="fas fa-paper-plane me-1"></i> Send Feedback to Email
+    </button>
+    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#emailSettingsModal" title="Configure Admin Email & SMTP Settings">
+      <i class="fas fa-cog"></i> Email Settings
+    </button>
+  </div>
+</div>
+
+<!-- Dynamic Refresh Alert Container -->
+<div id="refreshAlertContainer" class="d-none mb-3"></div>
+
+<!-- Search & Multi-Filter Bar -->
+<div class="admin-card p-3 mb-4">
+  <form method="GET" action="{{ url_for('admin_feedback') }}" class="row g-2 align-items-end">
+    <!-- 1. Text Search -->
+    <div class="col-lg-3 col-md-6">
+      <label class="form-label small text-muted mb-1">Search Keywords</label>
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-light text-muted border"><i class="fas fa-search"></i></span>
+        <input type="text" name="q" class="form-control" placeholder="Client, contact, project, feedback..." value="{{ q }}">
+      </div>
+    </div>
+
+    <!-- 2. Project-wise Filter -->
+    <div class="col-lg-2 col-md-6">
+      <label class="form-label small text-muted mb-1">Project Name</label>
+      <select name="project" class="form-select form-select-sm">
+        <option value="">All Projects</option>
+        {% for p in distinct_projects %}
+          <option value="{{ p }}" {% if project == p %}selected{% endif %}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- 3. User-wise Filter -->
+    <div class="col-lg-2 col-md-6">
+      <label class="form-label small text-muted mb-1">Feedback By User</label>
+      <select name="user" class="form-select form-select-sm">
+        <option value="">All Users</option>
+        {% for u in distinct_users %}
+          <option value="{{ u }}" {% if user == u %}selected{% endif %}>{{ u }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- 4. Enquiry Source Filter (Synchronized with CRM Lead Sources) -->
+    <div class="col-lg-2 col-md-6">
+      <label class="form-label small text-muted mb-1">Enquiry Source</label>
+      <select name="source" class="form-select form-select-sm">
+        <option value="">All Enquiry Sources</option>
+        {% for src in lead_sources %}
+          <option value="{{ src.source_name }}" {% if selected_source == src.source_name %}selected{% endif %}>{{ src.source_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- 5. Sort By Created Date & Time -->
+    <div class="col-lg-3 col-md-6">
+      <label class="form-label small fw-bold text-dark mb-1">
+        <i class="fas fa-sort-amount-down text-gold me-1"></i> Sort By Created Date & Time
+      </label>
+      <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="newest" {% if sort == 'newest' or not sort %}selected{% endif %}>Newest First (Latest enquiries first)</option>
+        <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest First (Oldest enquiries first)</option>
+      </select>
+    </div>
+
+    <!-- 6. Date From -->
+    <div class="col-lg-2 col-md-4 col-6">
+      <label class="form-label small text-muted mb-1">From</label>
+      <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+    </div>
+
+    <!-- 7. Date To -->
+    <div class="col-lg-2 col-md-4 col-6">
+      <label class="form-label small text-muted mb-1">To</label>
+      <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+    </div>
+
+    <!-- 8. Records Per Page -->
+    <div class="col-lg-2 col-md-4 col-6">
+      <label class="form-label small text-muted mb-1">Records Per Page</label>
+      <select name="per_page" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="10" {% if per_page == 10 %}selected{% endif %}>10 Records</option>
+        <option value="50" {% if per_page == 50 %}selected{% endif %}>50 Records</option>
+        <option value="100" {% if per_page == 100 %}selected{% endif %}>100 Records</option>
+        <option value="1000" {% if per_page == 1000 %}selected{% endif %}>1000 Records</option>
+      </select>
+    </div>
+
+    <!-- Filter Action Buttons -->
+    <div class="col-lg-2 col-md-4 d-flex gap-1">
+      <button type="submit" class="btn btn-gold btn-sm w-100" title="Apply Filters">
+        <i class="fas fa-filter me-1"></i> Filter
+      </button>
+      {% if q or project or user or selected_source or date_from or date_to or sort != 'newest' or per_page != 10 %}
+        <a href="{{ url_for('admin_feedback') }}" class="btn btn-light btn-sm border" title="Reset Filters">
+          <i class="fas fa-times"></i>
+        </a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Feedback Table (All 13 Columns) -->
+<div class="admin-card mb-4">
+  <div class="admin-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge bg-gold text-dark fw-bold">{{ total_count }}</span>
+      <strong class="text-dark">Total Enquiry Feedback Records</strong>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-outline-danger btn-sm" id="btnBulkDeleteFeedback" disabled data-bs-toggle="modal" data-bs-target="#bulkDeleteFeedbackModal">
+        <i class="fas fa-trash-alt me-1"></i> Delete Selected (<span id="selectedFeedbackCount">0</span>)
+      </button>
+      <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="btnDeselectAllFeedback">
+        Deselect All
+      </button>
+      <small class="text-muted ms-2">Showing Page {{ page }} of {{ total_pages }}</small>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table admin-table table-hover align-middle mb-0" style="min-width: 1450px;">
+      <thead>
+        <tr>
+          <th style="width: 40px;" class="text-center">
+            <input type="checkbox" class="form-check-input" id="selectAllFeedback" title="Select All Feedback Records">
+          </th>
+          <th style="width: 50px;">SN</th>
+          <th style="min-width: 140px;">Client Name</th>
+          <th style="min-width: 140px;">Client Contact</th>
+          <th style="min-width: 150px;">Enquiry Date & Time</th>
+          <th style="min-width: 140px;">Enquiry Source</th>
+          <th style="min-width: 160px;">Enquiry Project Name</th>
+          <th style="min-width: 100px;">Configuration</th>
+          <th style="min-width: 120px;">Cost (₹)</th>
+          <th style="min-width: 110px;">Carpet Area</th>
+          <th style="min-width: 120px;">Possession</th>
+          <th style="min-width: 160px;">Website Enquiry URL</th>
+          <th style="min-width: 220px;">Client Feedback</th>
+          <th style="min-width: 130px;">Feedback By User</th>
+          <th style="min-width: 150px;">Feedback Date & Time</th>
+          <th style="min-width: 110px;" class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for fb in feedbacks %}
+          <tr>
+            <td class="text-center">
+              <input type="checkbox" class="form-check-input feedback-checkbox" value="{{ fb.id }}" title="Select Feedback #{{ fb.id }}">
+            </td>
+            <!-- 1. SN & Lead ID -->
+            <td>
+              <span class="badge bg-light border text-dark fw-bold font-monospace">#{{ fb.id }}</span>
+              {% if fb.enquiry_id %}
+                <span class="badge bg-gold text-dark d-block mt-1 font-monospace" style="font-size: 0.7rem;" title="Linked CRM Lead ID">Lead #{{ fb.enquiry_id }}</span>
+              {% endif %}
+            </td>
+
+            <!-- 2. Client Name -->
+            <td>
+              <strong class="text-dark d-block">{{ fb.client_name }}</strong>
+            </td>
+
+            <!-- 3. Client Contact -->
+            <td>
+              <div class="d-flex align-items-center gap-1">
+                <span class="text-dark small font-monospace">{{ fb.client_contact }}</span>
+                {% if fb.client_contact %}
+                  <a href="tel:{{ fb.client_contact }}" class="btn btn-sm btn-outline-info p-1 py-0 ms-1" title="Call">
+                    <i class="fas fa-phone fa-xs"></i>
+                  </a>
+                  <a href="https://wa.me/{{ fb.client_contact|replace('+', '')|replace(' ', '') }}" target="_blank" class="btn btn-sm btn-outline-success p-1 py-0" title="WhatsApp">
+                    <i class="fab fa-whatsapp fa-xs"></i>
+                  </a>
+                {% endif %}
+              </div>
+            </td>
+
+            <!-- 4. Enquiry Date and Time -->
+            <td>
+              <small class="text-dark"><i class="fas fa-calendar-alt text-gold me-1"></i>{{ fb.enquiry_datetime }}</small>
+            </td>
+
+            <!-- Enquiry Source -->
+            <td>
+              <span class="badge bg-light border text-dark">
+                <i class="fas fa-bullhorn text-gold me-1"></i>{{ fb.enquiry_source or 'Website Direct' }}
+              </span>
+            </td>
+
+            <!-- 5. Enquiry Project Name -->
+            <td>
+              <span class="badge bg-light border text-dark fw-semibold">{{ fb.project_name }}</span>
+            </td>
+
+            <!-- 6. Configuration -->
+            <td>
+              <span class="small text-dark">{{ fb.configuration or '—' }}</span>
+            </td>
+
+            <!-- 7. Cost (Decimal/Currency) -->
+            <td>
+              {% if fb.cost and fb.cost > 0 %}
+                <strong class="text-dark small">{{ fb.cost|format_currency }}</strong>
+              {% else %}
+                <span class="text-muted small">—</span>
+              {% endif %}
+            </td>
+
+            <!-- 8. Carpet Area -->
+            <td>
+              <span class="small text-dark">{{ fb.carpet or '—' }}</span>
+            </td>
+
+            <!-- 9. Possession -->
+            <td>
+              <span class="small text-dark">{{ fb.possession or '—' }}</span>
+            </td>
+
+            <!-- 10. Website Enquiry URL -->
+            <td>
+              {% if fb.website_enquiry_url and fb.website_enquiry_url not in ['—', '-', 'None', 'N/A', ''] %}
+                <a href="{{ fb.website_enquiry_url }}" target="_blank" class="text-truncate d-inline-block small text-gold" style="max-width: 150px;" title="{{ fb.website_enquiry_url }}">
+                  <i class="fas fa-external-link-alt fa-xs me-1"></i>{{ fb.website_enquiry_url }}
+                </a>
+              {% else %}
+                <span class="text-muted small">N/A</span>
+              {% endif %}
+            </td>
+
+            <!-- 11. Client Feedback -->
+            <td>
+              <div class="small text-dark text-wrap" style="max-width: 260px; max-height: 80px; overflow-y: auto;">
+                {{ fb.client_feedback }}
+              </div>
+            </td>
+
+            <!-- 12. Feedback By UserName -->
+            <td>
+              <span class="badge bg-light border text-dark">
+                <i class="fas fa-user-circle text-gold me-1"></i>{{ fb.feedback_by_username }}
+              </span>
+            </td>
+
+            <!-- 13. Feedback Date and Time -->
+            <td>
+              <small class="text-muted"><i class="fas fa-clock fa-xs me-1"></i>{{ fb.feedback_datetime }}</small>
+            </td>
+
+            <!-- Actions -->
+            <td class="text-center">
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-gold btn-edit-feedback" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#editFeedbackModal" 
+                        data-id="{{ fb.id }}"
+                        data-enquiry-id="{{ fb.enquiry_id or '' }}"
+                        data-client-name="{{ fb.client_name|e }}"
+                        data-client-contact="{{ fb.client_contact|e }}"
+                        data-enquiry-datetime="{{ fb.enquiry_datetime|e }}"
+                        data-enquiry-source="{{ fb.enquiry_source or 'Website Direct' }}"
+                        data-project-name="{{ fb.project_name|e }}"
+                        data-configuration="{{ fb.configuration or ''|e }}"
+                        data-cost="{{ fb.cost or '' }}"
+                        data-carpet="{{ fb.carpet or ''|e }}"
+                        data-possession="{{ fb.possession or ''|e }}"
+                        data-url="{{ fb.website_enquiry_url or ''|e }}"
+                        data-feedback="{{ fb.client_feedback|e }}"
+                        data-feedback-by="{{ fb.feedback_by_username or 'System' }}"
+                        data-feedback-dt="{{ fb.feedback_datetime or '' }}"
+                        title="Edit Feedback">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button type="button" class="btn btn-outline-danger" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#deleteFeedbackModal" 
+                        data-id="{{ fb.id }}"
+                        data-name="{{ fb.client_name|e }}"
+                        title="Delete Feedback">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="16" class="text-center py-5">
+              <i class="fas fa-comments fs-1 text-muted d-block mb-3"></i>
+              <h5 class="text-dark">No Enquiry Feedback Found</h5>
+              <p class="text-muted small">Start adding feedback records from prospective client property enquiries.</p>
+              <button type="button" class="btn btn-gold btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#addFeedbackModal">
+                <i class="fas fa-plus me-1"></i> Add First Feedback
+              </button>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Controls -->
+  {% if total_pages > 1 %}
+    <div class="p-3 border-top d-flex justify-content-between align-items-center">
+      <small class="text-muted">Showing {{ feedbacks|length }} of {{ total_count }} total entries ({{ per_page }} per page)</small>
+      <nav aria-label="Feedback Pagination">
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('admin_feedback', page=page-1, per_page=per_page, q=q, project=project, user=user, source=selected_source, date_from=date_from, date_to=date_to, sort=sort) }}">&laquo; Prev</a>
+          </li>
+          {% for pnum in range(1, total_pages + 1) %}
+            {% if pnum == page %}
+              <li class="page-item active"><span class="page-link">{{ pnum }}</span></li>
+            {% elif pnum <= 3 or pnum >= total_pages - 2 or (pnum >= page - 1 and pnum <= page + 1) %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('admin_feedback', page=pnum, per_page=per_page, q=q, project=project, user=user, source=selected_source, date_from=date_from, date_to=date_to, sort=sort) }}">{{ pnum }}</a>
+              </li>
+            {% elif pnum == 4 or pnum == total_pages - 3 %}
+              <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+          {% endfor %}
+          <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('admin_feedback', page=page+1, per_page=per_page, q=q, project=project, user=user, source=selected_source, date_from=date_from, date_to=date_to, sort=sort) }}">Next &raquo;</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+</div>
+
+<!-- ===================================================================
+     MODALS: ADD, EDIT, DELETE, SEND EMAIL, EMAIL SETTINGS
+     =================================================================== -->
+
+<!-- 1. Add Feedback Modal -->
+<div class="modal fade" id="addFeedbackModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content modal-content-grn">
+      <div class="modal-header">
+        <h5 class="modal-title font-heading text-dark"><i class="fas fa-plus-circle text-gold me-2"></i>Add Client Enquiry Feedback</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url_for('admin_feedback_add') }}">
+        <div class="modal-body p-4">
+          <div class="row g-3">
+            <!-- Client Name -->
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Client Name <span class="text-danger">*</span></label>
+              <input type="text" name="client_name" class="form-control" placeholder="e.g. Rajesh Kothari" required>
+            </div>
+
+            <!-- Client Contact -->
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Client Contact Number <span class="text-danger">*</span></label>
+              <input type="text" name="client_contact" class="form-control" placeholder="e.g. +91 98220 99887" required>
+            </div>
+
+            <!-- Enquiry Date & Time -->
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Enquiry Date & Time</label>
+              <input type="datetime-local" name="enquiry_datetime" class="form-control" id="addEnquiryDateTime">
+            </div>
+
+            <!-- Enquiry Source (Synchronized with CRM Lead Sources) -->
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Enquiry Source <span class="text-danger">*</span></label>
+              <select name="enquiry_source" class="form-select" required>
+                {% for src in lead_sources %}
+                  <option value="{{ src.source_name }}" {% if src.source_name == 'Website Direct' %}selected{% endif %}>{{ src.source_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Project Name -->
+            <div class="col-md-12">
+              <label class="form-label small fw-bold text-dark">Enquiry Project Name <span class="text-danger">*</span></label>
+              <input type="text" name="project_name" class="form-control" list="projectSuggestions" placeholder="e.g. Godrej Sky Terraces" required>
+              <datalist id="projectSuggestions">
+                {% for proj in property_projects %}
+                  <option value="{{ proj }}">
+                {% endfor %}
+              </datalist>
+            </div>
+
+            <!-- Configuration -->
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark">Configuration</label>
+              <select name="configuration" class="form-select">
+                <option value="">Select Configuration</option>
+                <option value="1 BHK">1 BHK</option>
+                <option value="2 BHK">2 BHK</option>
+                <option value="2.5 BHK">2.5 BHK</option>
+                <option value="3 BHK">3 BHK</option>
+                <option value="3.5 BHK">3.5 BHK</option>
+                <option value="4 BHK">4 BHK</option>
+                <option value="5+ BHK / Penthouse">5+ BHK / Penthouse</option>
+                <option value="Plot / Land">Plot / Land</option>
+                <option value="Commercial Office / Shop">Commercial Office / Shop</option>
+              </select>
+            </div>
+
+            <!-- Cost -->
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark">Cost / Budget (₹)</label>
+              <input type="number" step="1000" name="cost" class="form-control" placeholder="e.g. 12500000">
+            </div>
+
+            <!-- Carpet Area -->
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark">Carpet Area</label>
+              <input type="text" name="carpet" class="form-control" placeholder="e.g. 1150 sq ft">
+            </div>
+
+            <!-- Possession -->
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Possession</label>
+              <input type="text" name="possession" class="form-control" placeholder="e.g. Ready to Move / Dec 2026">
+            </div>
+
+            <!-- Website Enquiry URL -->
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Website Enquiry URL</label>
+              <input type="url" name="website_enquiry_url" class="form-control" placeholder="https://realestate.com/property/...">
+            </div>
+
+            <!-- Client Feedback -->
+            <div class="col-12">
+              <label class="form-label small fw-bold text-dark">Client Feedback <span class="text-danger">*</span></label>
+              <textarea name="client_feedback" class="form-control" rows="4" placeholder="Enter detailed feedback from customer discussion, preferences, decision factors, etc..." required></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-top">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold btn-sm"><i class="fas fa-save me-1"></i> Save Feedback</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Edit Feedback Modal -->
+<div class="modal fade" id="editFeedbackModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content modal-content-grn">
+      <div class="modal-header">
+        <h5 class="modal-title font-heading text-dark">
+          <i class="fas fa-edit text-gold me-2"></i>Edit Client Enquiry Feedback
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" id="editFeedbackForm">
+        <input type="hidden" name="feedback_id" id="edit_feedback_id">
+        <div class="modal-body p-4">
+
+          <!-- Dynamic Fetch Loading Indicator -->
+          <div id="editFeedbackLoading" class="text-center py-3 mb-3 border rounded bg-light" style="display: none;">
+            <div class="spinner-border spinner-border-sm text-gold me-2" role="status"></div>
+            <span class="small text-muted fw-semibold">Fetching latest enquiry details from database...</span>
+          </div>
+
+          <!-- Record Header Info: SN / Enquiry ID, Feedback By, Feedback Date and Time -->
+          <div class="p-3 mb-3 rounded border bg-light d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+              <span class="text-muted small fw-bold text-uppercase d-block" style="font-size: 0.72rem;">SN / Enquiry ID</span>
+              <span class="badge bg-gold text-dark fs-6" id="edit_sn_badge">#0</span>
+              <span class="badge bg-info text-dark ms-1" id="edit_enquiry_id_badge" style="display: none;"></span>
+            </div>
+            <div>
+              <span class="text-muted small fw-bold text-uppercase d-block" style="font-size: 0.72rem;">Feedback By Username</span>
+              <span class="fw-semibold text-dark" id="edit_feedback_by_display">-</span>
+            </div>
+            <div>
+              <span class="text-muted small fw-bold text-uppercase d-block" style="font-size: 0.72rem;">Feedback Date and Time</span>
+              <span class="text-muted small" id="edit_feedback_datetime_display">-</span>
+            </div>
+          </div>
+
+          <div id="editFeedbackFields" class="row g-3">
+            <!-- Client Name -->
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Client Name <span class="text-danger">*</span></label>
+              <input type="text" name="client_name" id="edit_client_name" class="form-control" required>
+            </div>
+
+            <!-- Client Contact -->
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Client Contact Number <span class="text-danger">*</span></label>
+              <input type="text" name="client_contact" id="edit_client_contact" class="form-control" required>
+            </div>
+
+            <!-- Enquiry Date & Time -->
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Enquiry Date & Time</label>
+              <input type="text" name="enquiry_datetime" id="edit_enquiry_datetime" class="form-control">
+            </div>
+
+            <!-- Enquiry Source (Synchronized with CRM Lead Sources) -->
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Enquiry Source <span class="text-danger">*</span></label>
+              <select name="enquiry_source" id="edit_enquiry_source" class="form-select" required>
+                {% for src in lead_sources %}
+                  <option value="{{ src.source_name }}">{{ src.source_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Project Name -->
+            <div class="col-md-12">
+              <label class="form-label small fw-bold text-dark">Enquiry Project Name <span class="text-danger">*</span></label>
+              <input type="text" name="project_name" id="edit_project_name" class="form-control" required>
+            </div>
+
+            <!-- Configuration -->
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark">Configuration</label>
+              <input type="text" name="configuration" id="edit_configuration" class="form-control">
+            </div>
+
+            <!-- Cost -->
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark">Cost / Budget (₹)</label>
+              <input type="number" step="1000" name="cost" id="edit_cost" class="form-control">
+            </div>
+
+            <!-- Carpet Area -->
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark">Carpet Area</label>
+              <input type="text" name="carpet" id="edit_carpet" class="form-control">
+            </div>
+
+            <!-- Possession -->
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Possession</label>
+              <input type="text" name="possession" id="edit_possession" class="form-control">
+            </div>
+
+            <!-- Website Enquiry URL -->
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Website Enquiry URL</label>
+              <input type="url" name="website_enquiry_url" id="edit_website_enquiry_url" class="form-control">
+            </div>
+
+            <!-- Client Feedback -->
+            <div class="col-12">
+              <label class="form-label small fw-bold text-dark">Client Feedback <span class="text-danger">*</span></label>
+              <textarea name="client_feedback" id="edit_client_feedback" class="form-control" rows="4" required></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-top">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold btn-sm"><i class="fas fa-check me-1"></i> Update Feedback</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Delete Feedback Modal -->
+<div class="modal fade" id="deleteFeedbackModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-content-grn">
+      <div class="modal-header">
+        <h5 class="modal-title font-heading text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Delete Feedback Record</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" id="deleteFeedbackForm">
+        <div class="modal-body p-4 text-center">
+          <i class="fas fa-trash-alt fs-1 text-danger mb-3"></i>
+          <h6 class="text-dark">Are you sure you want to delete this feedback?</h6>
+          <p class="text-muted small mb-0">Record for client <strong class="text-dark" id="delClientName"></strong> will be permanently deleted from the database. This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer bg-light border-top">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt me-1"></i> Yes, Delete Permanently</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Delete Feedback Modal -->
+<div class="modal fade" id="bulkDeleteFeedbackModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-content-grn">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title font-heading text-danger">
+          <i class="fas fa-trash-alt me-2"></i>Delete Selected Feedback Records
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="bulkDeleteFeedbackForm" method="POST" action="{{ url_for('admin_feedback_bulk_delete') }}">
+        <div class="modal-body p-4 text-center">
+          <div class="mb-3 text-danger">
+            <i class="fas fa-exclamation-triangle fa-3x"></i>
+          </div>
+          <h6 class="fw-bold text-dark mb-2">Are you sure you want to permanently delete the selected enquiry records?</h6>
+          <p class="text-muted small mb-3">
+            Total Selected: <span class="badge bg-danger fs-6" id="bulkDeleteFeedbackModalCount">0</span>
+          </p>
+          <p class="text-secondary small mb-0">
+            This action cannot be undone. All selected feedback records will be permanently removed.
+          </p>
+          <div id="bulkDeleteFeedbackHiddenInputs"></div>
+        </div>
+        <div class="modal-footer border-top">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger btn-sm px-3" id="btnConfirmBulkDeleteFeedback">
+            <i class="fas fa-trash-alt me-1"></i> Confirm Delete
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Send Feedback to Email Confirmation Modal -->
+<div class="modal fade" id="sendEmailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-content-grn">
+      <div class="modal-header">
+        <h5 class="modal-title font-heading text-dark"><i class="fas fa-paper-plane text-gold me-2"></i>Send All Feedback in Excel</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="sendEmailForm">
+        <div class="modal-body p-4">
+          <p class="text-dark small">This will fetch all <strong>{{ total_count }}</strong> feedback records with all 13 columns, generate a formatted Excel spreadsheet, and send it as an email attachment to the configured Admin Email address.</p>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-dark">Recipient Admin Email Address</label>
+            <input type="email" name="recipient_email" id="recipientEmailInput" class="form-control" value="{{ admin_email }}" required>
+            <small class="text-muted">You can change the recipient email for this transmission, or configure it permanently in Email Settings.</small>
+          </div>
+
+          <div id="emailSendingAlert" class="alert alert-info d-none mb-0 small">
+            <i class="fas fa-spinner fa-spin me-2"></i> Generating Excel workbook and delivering email... please wait.
+          </div>
+          <div id="emailResultAlert" class="alert d-none mb-0 small mt-3"></div>
+        </div>
+        <div class="modal-footer bg-light border-top">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" id="btnCancelSend">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btnConfirmSend">
+            <i class="fas fa-envelope me-1"></i> Send Excel Report
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Email & SMTP Settings Modal -->
+<div class="modal fade" id="emailSettingsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-content-grn">
+      <div class="modal-header">
+        <h5 class="modal-title font-heading text-dark"><i class="fas fa-cog text-gold me-2"></i>Admin Email & SMTP Configuration</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url_for('admin_settings_email') }}">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-dark">Configured Admin Email <span class="text-danger">*</span></label>
+            <input type="email" name="admin_email" class="form-control" value="{{ admin_email }}" required>
+            <small class="text-muted">All exported feedback reports will be sent to this destination address.</small>
+          </div>
+
+          <hr class="my-3">
+          <h6 class="text-dark small fw-bold"><i class="fas fa-server text-gold me-1"></i>Optional Outbound SMTP Relay</h6>
+          <p class="text-muted small">Configure if you wish to route emails through an external SMTP server (e.g., Gmail, SendGrid, Office365, AWS SES). If left blank, generated reports are archived in the database email outbox.</p>
+
+          <div class="row g-2">
+            <div class="col-8">
+              <label class="form-label small text-muted">SMTP Server Host</label>
+              <input type="text" name="smtp_host" class="form-control form-control-sm" placeholder="e.g. smtp.gmail.com">
+            </div>
+            <div class="col-4">
+              <label class="form-label small text-muted">Port</label>
+              <input type="number" name="smtp_port" class="form-control form-control-sm" value="587">
+            </div>
+            <div class="col-12">
+              <label class="form-label small text-muted">SMTP Username / Email</label>
+              <input type="text" name="smtp_user" class="form-control form-control-sm" placeholder="user@example.com">
+            </div>
+            <div class="col-12">
+              <label class="form-label small text-muted">SMTP Password</label>
+              <input type="password" name="smtp_password" class="form-control form-control-sm" placeholder="••••••••">
+            </div>
+            <div class="col-12">
+              <div class="form-check form-switch mt-1">
+                <input class="form-check-input" type="checkbox" name="smtp_tls" id="smtpTls" checked>
+                <label class="form-check-label small text-dark" for="smtpTls">Enable TLS / STARTTLS Encryption</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-top">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold btn-sm"><i class="fas fa-save me-1"></i> Save Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Central Lead Sources Modal (Synchronized with CRM Lead Sources) -->
+{% include 'includes/lead_sources_modal.html' %}
+
+{% endblock %}
+
+{% block admin_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Pre-fill datetime-local for Add modal
+  const dtInput = document.getElementById('addEnquiryDateTime');
+  if (dtInput) {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    dtInput.value = now.toISOString().slice(0, 16);
+  }
+
+  // Populate Edit Modal with Dynamic DB Fetch & DOM Fallback
+  function fillAdminEditModal(data) {
+    if (!data) return;
+    const fId = data.id || '';
+    const hiddenId = document.getElementById('edit_feedback_id');
+    if (hiddenId) hiddenId.value = fId;
+
+    const snBadge = document.getElementById('edit_sn_badge');
+    if (snBadge) snBadge.textContent = '#' + fId;
+
+    const enqBadge = document.getElementById('edit_enquiry_id_badge');
+    if (enqBadge) {
+      if (data.enquiry_id) {
+        enqBadge.textContent = 'Website Lead #' + data.enquiry_id;
+        enqBadge.style.display = 'inline-block';
+      } else {
+        enqBadge.style.display = 'none';
+      }
+    }
+
+    const fbBy = document.getElementById('edit_feedback_by_display');
+    if (fbBy) fbBy.textContent = data.feedback_by_username || 'System Admin';
+
+    const fbDt = document.getElementById('edit_feedback_datetime_display');
+    if (fbDt) fbDt.textContent = data.feedback_datetime || 'N/A';
+
+    document.getElementById('edit_client_name').value = data.client_name || '';
+    document.getElementById('edit_client_contact').value = data.client_contact || '';
+    document.getElementById('edit_enquiry_datetime').value = data.enquiry_datetime || '';
+
+    const sourceVal = data.enquiry_source || 'Website Direct';
+    const sourceSelect = document.getElementById('edit_enquiry_source');
+    if (sourceSelect) {
+      let found = false;
+      for (let i = 0; i < sourceSelect.options.length; i++) {
+        if (sourceSelect.options[i].value === sourceVal) {
+          found = true;
+          break;
+        }
+      }
+      if (!found && sourceVal) {
+        const opt = document.createElement('option');
+        opt.value = sourceVal;
+        opt.textContent = sourceVal;
+        sourceSelect.appendChild(opt);
+      }
+      sourceSelect.value = sourceVal;
+    }
+
+    document.getElementById('edit_project_name').value = data.project_name || '';
+    document.getElementById('edit_configuration').value = data.configuration || '';
+    document.getElementById('edit_cost').value = (data.cost !== undefined && data.cost !== null && data.cost !== 0) ? data.cost : (data.cost === 0 ? '0' : '');
+    document.getElementById('edit_carpet').value = data.carpet || '';
+    document.getElementById('edit_possession').value = data.possession || '';
+    document.getElementById('edit_website_enquiry_url').value = data.website_enquiry_url || '';
+    document.getElementById('edit_client_feedback').value = data.client_feedback || '';
+  }
+
+  const editModal = document.getElementById('editFeedbackModal');
+  if (editModal) {
+    editModal.addEventListener('show.bs.modal', function(event) {
+      const button = event.relatedTarget ? (event.relatedTarget.closest('[data-id]') || event.relatedTarget) : null;
+      if (!button) return;
+
+      const id = button.getAttribute('data-id');
+      if (!id) return;
+
+      document.getElementById('editFeedbackForm').action = '/admin/feedback/edit/' + id;
+
+      // 1. Immediately apply fallback data attributes for instant responsiveness
+      fillAdminEditModal({
+        id: id,
+        enquiry_id: button.getAttribute('data-enquiry-id') || '',
+        client_name: button.getAttribute('data-client-name') || '',
+        client_contact: button.getAttribute('data-client-contact') || '',
+        enquiry_datetime: button.getAttribute('data-enquiry-datetime') || '',
+        enquiry_source: button.getAttribute('data-enquiry-source') || 'Website Direct',
+        project_name: button.getAttribute('data-project-name') || '',
+        configuration: button.getAttribute('data-configuration') || '',
+        cost: button.getAttribute('data-cost') || '',
+        carpet: button.getAttribute('data-carpet') || '',
+        possession: button.getAttribute('data-possession') || '',
+        website_enquiry_url: button.getAttribute('data-url') || '',
+        client_feedback: button.getAttribute('data-feedback') || '',
+        feedback_by_username: button.getAttribute('data-feedback-by') || '',
+        feedback_datetime: button.getAttribute('data-feedback-dt') || ''
+      });
+
+      // 2. Fetch fresh complete enquiry feedback record from database via API
+      const loading = document.getElementById('editFeedbackLoading');
+      if (loading) loading.style.display = 'block';
+
+      fetch('/api/feedback/' + id)
+        .then(res => {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(payload => {
+          if (payload && payload.success && payload.feedback) {
+            fillAdminEditModal(payload.feedback);
+          }
+        })
+        .catch(err => {
+          console.warn('API fetch for feedback #' + id + ' failed, DOM fallback preserved:', err);
+        })
+        .finally(() => {
+          if (loading) loading.style.display = 'none';
+        });
+    });
+  }
+
+  // Populate Delete Modal
+  const delModal = document.getElementById('deleteFeedbackModal');
+  if (delModal) {
+    delModal.addEventListener('show.bs.modal', function(event) {
+      const button = event.relatedTarget;
+      const id = button.getAttribute('data-id');
+      const name = button.getAttribute('data-name');
+      document.getElementById('deleteFeedbackForm').action = '/admin/feedback/delete/' + id;
+      document.getElementById('delClientName').textContent = name;
+    });
+  }
+
+  // Handle Send Email Form Submission with Loading & Duplicate Prevention
+  const sendEmailForm = document.getElementById('sendEmailForm');
+  const btnConfirmSend = document.getElementById('btnConfirmSend');
+  const btnCancelSend = document.getElementById('btnCancelSend');
+  const emailSendingAlert = document.getElementById('emailSendingAlert');
+  const emailResultAlert = document.getElementById('emailResultAlert');
+
+  if (sendEmailForm) {
+    sendEmailForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      // Prevent duplicate submissions
+      btnConfirmSend.disabled = true;
+      btnCancelSend.disabled = true;
+      btnConfirmSend.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Sending...';
+      emailSendingAlert.classList.remove('d-none');
+      emailResultAlert.classList.add('d-none');
+
+      const recipientEmail = document.getElementById('recipientEmailInput').value;
+      const formData = new FormData();
+      formData.append('recipient_email', recipientEmail);
+
+      fetch('/admin/feedback/email', {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+      .then(response => response.json().then(data => ({ status: response.status, body: data })))
+      .then(res => {
+        emailSendingAlert.classList.add('d-none');
+        emailResultAlert.classList.remove('d-none');
+
+        if (res.body.success) {
+          emailResultAlert.className = 'alert alert-success small mb-0 mt-3';
+          emailResultAlert.innerHTML = '<i class="fas fa-check-circle me-1"></i> ' + res.body.message;
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } else {
+          emailResultAlert.className = 'alert alert-danger small mb-0 mt-3';
+          emailResultAlert.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> ' + (res.body.message || 'Email delivery failed.');
+          btnConfirmSend.disabled = false;
+          btnCancelSend.disabled = false;
+          btnConfirmSend.innerHTML = '<i class="fas fa-envelope me-1"></i> Try Again';
+        }
+      })
+      .catch(err => {
+        emailSendingAlert.classList.add('d-none');
+        emailResultAlert.classList.remove('d-none');
+        emailResultAlert.className = 'alert alert-danger small mb-0 mt-3';
+        emailResultAlert.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Network error occurred: ' + err.message;
+        btnConfirmSend.disabled = false;
+        btnCancelSend.disabled = false;
+        btnConfirmSend.innerHTML = '<i class="fas fa-envelope me-1"></i> Retry Sending';
+      });
+    });
+  }
+
+  // Handle Refresh / Reload Enquiries directly from Website Database
+  const btnRefresh = document.getElementById('btnRefreshEnquiries');
+  const refreshAlertContainer = document.getElementById('refreshAlertContainer');
+
+  if (btnRefresh) {
+    btnRefresh.addEventListener('click', function() {
+      // 6. Prevent duplicate enquiries & multiple clicks
+      btnRefresh.disabled = true;
+      const originalHtml = btnRefresh.innerHTML;
+      // 7. Loading indicator
+      btnRefresh.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Refreshing Enquiries...';
+
+      if (refreshAlertContainer) {
+        refreshAlertContainer.className = 'alert alert-info alert-dismissible fade show small mb-3';
+        refreshAlertContainer.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Connecting to website enquiry database and fetching latest leads...';
+        refreshAlertContainer.classList.remove('d-none');
+      }
+
+      fetch('/admin/feedback/refresh', {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(errData => { throw new Error(errData.message || 'Server error occurred'); });
+        }
+        return response.json();
+      })
+      .then(data => {
+        btnRefresh.disabled = false;
+        btnRefresh.innerHTML = originalHtml;
+
+        if (!refreshAlertContainer) return;
+
+        if (data.success) {
+          if (data.count > 0) {
+            // 8. Success message with count of newly received enquiries
+            refreshAlertContainer.className = 'alert alert-success alert-dismissible fade show small mb-3';
+            refreshAlertContainer.innerHTML = `
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <i class="fas fa-check-circle me-2 text-success fs-6"></i>
+                  <strong>Enquiries Refreshed:</strong> ${data.message}
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            `;
+            setTimeout(() => {
+              window.location.reload();
+            }, 1200);
+          } else {
+            // 9. If no new enquiries are available: "No New Enquiries Found."
+            refreshAlertContainer.className = 'alert alert-info alert-dismissible fade show small mb-3';
+            refreshAlertContainer.innerHTML = `
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <i class="fas fa-info-circle me-2 text-info fs-6"></i>
+                  <strong>Status:</strong> ${data.message || 'No New Enquiries Found.'}
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            `;
+          }
+        } else {
+          // 10. Handle API/database error message
+          refreshAlertContainer.className = 'alert alert-danger alert-dismissible fade show small mb-3';
+          refreshAlertContainer.innerHTML = `
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <i class="fas fa-exclamation-triangle me-2 text-danger fs-6"></i>
+                <strong>Database Error:</strong> ${data.message || 'Failed to refresh enquiries.'}
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          `;
+        }
+      })
+      .catch(err => {
+        btnRefresh.disabled = false;
+        btnRefresh.innerHTML = originalHtml;
+
+        if (refreshAlertContainer) {
+          refreshAlertContainer.className = 'alert alert-danger alert-dismissible fade show small mb-3';
+          refreshAlertContainer.innerHTML = `
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <i class="fas fa-exclamation-circle me-2 text-danger fs-6"></i>
+                <strong>Error:</strong> ${err.message || 'Failed to connect to enquiry database.'}
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          `;
+        }
+      });
+    });
+  }
+
+  // ===================================================================
+  // BULK DELETE FEEDBACK HANDLERS
+  // ===================================================================
+  const selectAll = document.getElementById('selectAllFeedback');
+  const checkboxes = document.querySelectorAll('.feedback-checkbox');
+  const btnBulkDelete = document.getElementById('btnBulkDeleteFeedback');
+  const btnDeselectAll = document.getElementById('btnDeselectAllFeedback');
+  const countSpan = document.getElementById('selectedFeedbackCount');
+  const modalCountSpan = document.getElementById('bulkDeleteFeedbackModalCount');
+  const hiddenInputsContainer = document.getElementById('bulkDeleteFeedbackHiddenInputs');
+  const bulkDeleteForm = document.getElementById('bulkDeleteFeedbackForm');
+
+  function updateBulkSelection() {
+    const checked = Array.from(checkboxes).filter(cb => cb.checked);
+    const count = checked.length;
+    if (countSpan) countSpan.textContent = count;
+    if (modalCountSpan) modalCountSpan.textContent = count;
+
+    if (btnBulkDelete) {
+      btnBulkDelete.disabled = (count === 0);
+    }
+    if (btnDeselectAll) {
+      if (count > 0) {
+        btnDeselectAll.classList.remove('d-none');
+      } else {
+        btnDeselectAll.classList.add('d-none');
+      }
+    }
+
+    if (selectAll) {
+      if (checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked)) {
+        selectAll.checked = true;
+        selectAll.indeterminate = false;
+      } else if (checked.length > 0) {
+        selectAll.checked = false;
+        selectAll.indeterminate = true;
+      } else {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+      }
+    }
+  }
+
+  if (selectAll) {
+    selectAll.addEventListener('change', function() {
+      checkboxes.forEach(cb => { cb.checked = selectAll.checked; });
+      updateBulkSelection();
+    });
+  }
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', updateBulkSelection);
+  });
+
+  if (btnDeselectAll) {
+    btnDeselectAll.addEventListener('click', function() {
+      checkboxes.forEach(cb => { cb.checked = false; });
+      if (selectAll) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+      }
+      updateBulkSelection();
+    });
+  }
+
+  if (bulkDeleteForm) {
+    bulkDeleteForm.addEventListener('submit', function(e) {
+      hiddenInputsContainer.innerHTML = '';
+      const checked = Array.from(checkboxes).filter(cb => cb.checked);
+      if (checked.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one feedback record to delete.');
+        return false;
+      }
+      checked.forEach(cb => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'feedback_ids';
+        input.value = cb.value;
+        hiddenInputsContainer.appendChild(input);
+      });
+    });
+  }
+
+  const bulkModalElem = document.getElementById('bulkDeleteFeedbackModal');
+  if (bulkModalElem) {
+    bulkModalElem.addEventListener('show.bs.modal', function() {
+      const checked = Array.from(checkboxes).filter(cb => cb.checked);
+      if (modalCountSpan) modalCountSpan.textContent = checked.length;
+    });
+  }
+});
+</script>
+{% endblock %}
+

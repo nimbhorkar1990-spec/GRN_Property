@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy Policy | {{ company_name }}{% endblock %}
+
+{% block content %}
+<section class="py-5" style="background: #07080A; border-bottom: 1px solid rgba(212, 175, 55, 0.2);">
+  <div class="container py-3">
+    <h1 class="font-heading display-6 mb-2">Privacy Policy</h1>
+    <div class="gold-divider-start"></div>
+    <p class="text-muted mb-0">Last Updated: November 2026</p>
+  </div>
+</section>
+
+<section class="py-5" style="background-color: #0A0B0E;">
+  <div class="container">
+    <div class="search-card p-4 p-md-5">
+      <div class="text-light" style="line-height: 1.8;">
+        <h3 class="text-gold font-heading fs-4 mb-3">1. Information We Collect</h3>
+        <p class="text-muted">
+          {{ company_name }} collects information you provide directly through our enquiry forms, site visit booking modals, and contact channels. This includes your name, mobile phone number, email address, preferred property location, budget, and specific home requirements.
+        </p>
+
+        <h3 class="text-gold font-heading fs-4 mb-3 mt-4">2. How We Use Your Information</h3>
+        <p class="text-muted">
+          We use the information collected solely to:
+        </p>
+        <ul class="text-muted">
+          <li>Provide personalized real estate advisory, cost sheets, and project brochures.</li>
+          <li>Schedule and coordinate property site tours with our certified channel partner executives.</li>
+          <li>Answer customer inquiries and facilitate negotiations with verified real estate developers in Pune.</li>
+        </ul>
+
+        <h3 class="text-gold font-heading fs-4 mb-3 mt-4">3. Data Protection & Sharing</h3>
+        <p class="text-muted">
+          We respect your privacy. We never sell, rent, or trade your personal contact details to external marketing agencies or unverified third parties. Your details are accessed strictly by our internal property advisors for legitimate service delivery.
+        </p>
+
+        <h3 class="text-gold font-heading fs-4 mb-3 mt-4">4. MahaRERA Compliance</h3>
+        <p class="text-muted">
+          All real estate interactions are governed by the Real Estate (Regulation and Development) Act (MahaRERA). We adhere strictly to RERA guidelines regarding advertising transparency and consumer protection.
+        </p>
+
+        <h3 class="text-gold font-heading fs-4 mb-3 mt-4">5. Contact Our Privacy Officer</h3>
+        <p class="text-muted">
+          For any questions concerning this Privacy Policy, please write to us at <a href="mailto:{{ company_email }}" class="text-gold">{{ company_email }}</a> or visit our corporate office at {{ company_address }}.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

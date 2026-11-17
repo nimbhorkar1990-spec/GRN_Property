@@ -1,0 +1,439 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ property.title }} | {{ company_name }}{% endblock %}
+{% block meta_description %}{{ property.description[:160] }}{% endblock %}
+
+{% block content %}
+<!-- Property Header Section -->
+<section class="py-4" style="background-color: #07080A; border-bottom: 1px solid rgba(212, 175, 55, 0.2);">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb small mb-3">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-gold">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('properties') }}" class="text-gold">Properties</a></li>
+        <li class="breadcrumb-item"><span class="text-gold">{{ property.city or 'Pune' }}</span></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('location_view', loc_name=property.sub_location or property.location) }}" class="text-gold">{{ property.sub_location or property.location }}</a></li>
+        <li class="breadcrumb-item active text-dark" aria-current="page">{{ property.title }}</li>
+      </ol>
+    </nav>
+
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+          <span class="badge-purpose">For {{ property.purpose }}</span>
+          <span class="badge bg-light border text-dark">{{ property.category }}</span>
+          {% if property.status not in ['Available', 'Active'] %}
+            <span class="badge bg-warning text-dark"><i class="fas fa-hourglass-half me-1"></i> {{ property.status }}</span>
+          {% else %}
+            <span class="badge bg-success bg-opacity-25 text-success border border-success"><i class="fas fa-check-circle me-1"></i> Active / Available</span>
+          {% endif %}
+          {% if property.featured %}
+            <span class="badge-featured"><i class="fas fa-star me-1"></i> Featured</span>
+          {% endif %}
+        </div>
+        <h1 class="detail-hero-title">{{ property.title }}</h1>
+        <p class="text-muted mb-0">
+          <span class="badge bg-light border text-dark me-2"><i class="fas fa-city text-gold me-1"></i>{{ property.city or 'Pune' }}</span>
+          <i class="fas fa-map-marker-alt text-gold me-2"></i>{{ property.address or property.location }}
+        </p>
+      </div>
+
+      <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+        <span class="text-muted small text-uppercase letter-spacing-1 d-block">Expected Price</span>
+        <div class="detail-price">{{ property.price_display }}</div>
+        {% if property.carpet_area %}
+          <small class="text-muted">≈ ₹{{ (property.price / property.carpet_area)|round|int }} / sq.ft carpet</small>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Main Details Layout -->
+<section class="py-5" style="background-color: #0A0B0E;">
+  <div class="container">
+    <div class="row g-4">
+      
+      <!-- Left Column: Media & Specifications -->
+      <div class="col-lg-8">
+        
+        <!-- Image Gallery Display -->
+        {% if is_visible('prop_gallery') %}
+        <div class="detail-gallery-main mb-3 shadow">
+          <img id="mainPropertyImage" src="{{ property.featured_image }}" alt="{{ property.title }}">
+        </div>
+
+        <!-- Thumbnails Strip -->
+        {% if gallery %}
+          <div class="thumb-strip mb-4">
+            <div class="thumb-item active" data-full-img="{{ property.featured_image }}">
+              <img src="{{ property.featured_image }}" alt="Thumbnail Main">
+            </div>
+            {% for img_url in gallery %}
+              <div class="thumb-item" data-full-img="{{ img_url }}">
+                <img src="{{ img_url }}" alt="Gallery Image {{ loop.index }}">
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% endif %}
+
+        <!-- Quick Specifications Grid -->
+        <div class="row g-3 mb-5">
+          <div class="col-6 col-md-3">
+            <div class="detail-spec-card">
+              <i class="fas fa-bed text-gold fs-4 mb-2"></i>
+              <div class="detail-spec-label">Configuration</div>
+              <div class="detail-spec-value">{{ property.configuration }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="detail-spec-card">
+              <i class="fas fa-vector-square text-gold fs-4 mb-2"></i>
+              <div class="detail-spec-label">Carpet Area</div>
+              <div class="detail-spec-value">{{ property.carpet_area }} sq.ft</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="detail-spec-card">
+              <i class="fas fa-calendar-alt text-gold fs-4 mb-2"></i>
+              <div class="detail-spec-label">Possession</div>
+              <div class="detail-spec-value">{{ property.possession_status or 'Ready' }}</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="detail-spec-card">
+              <i class="fas fa-bath text-gold fs-4 mb-2"></i>
+              <div class="detail-spec-label">Bathrooms</div>
+              <div class="detail-spec-value">{{ property.bathrooms or '—' }} Baths</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comprehensive Description -->
+        {% if is_visible('prop_overview') %}
+        <div class="search-card p-4 p-md-5 mb-4">
+          <h3 class="font-heading fs-4 mb-3 text-gold">
+            <i class="fas fa-align-left me-2"></i>Property Overview & Description
+          </h3>
+          <div class="gold-divider-start"></div>
+          <p class="text-dark fs-6" style="white-space: pre-line; line-height: 1.8;">
+            {{ property.description }}
+          </p>
+
+          {% if property.rera_number %}
+            <div class="mt-4 p-3 bg-light rounded border d-flex align-items-center gap-3">
+              <i class="fas fa-certificate text-gold fs-2"></i>
+              <div>
+                <strong class="text-dark d-block">MahaRERA Registered Project</strong>
+                <span class="text-gold small">Registration No: {{ property.rera_number }}</span>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Amenities Section -->
+        {% if is_visible('prop_amenities') and amenities %}
+          <div class="search-card p-4 p-md-5 mb-4">
+            <h3 class="font-heading fs-4 mb-3 text-gold">
+              <i class="fas fa-concierge-bell me-2"></i>World-Class Amenities
+            </h3>
+            <div class="gold-divider-start"></div>
+            <div class="row g-3">
+              {% for amenity in amenities %}
+                <div class="col-md-6 col-sm-6">
+                  <div class="amenity-chip">
+                    <i class="fas fa-check-circle"></i>
+                    <span>{{ amenity }}</span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Floor Plan Section -->
+        {% if is_visible('prop_floor_plans') %}
+        <div class="search-card p-4 p-md-5 mb-4">
+          <h3 class="font-heading fs-4 mb-3 text-gold">
+            <i class="fas fa-drafting-compass me-2"></i>Architectural Layout & Floor Plan
+          </h3>
+          <div class="gold-divider-start"></div>
+          <div class="p-4 bg-light rounded border text-center">
+            {% if property.floor_plan_image %}
+              <img src="{{ property.floor_plan_image }}" alt="Floor Plan" class="img-fluid rounded mb-3" style="max-height: 380px;">
+              <p class="text-muted small">Sanctioned layout plan. Subject to developer RERA terms.</p>
+            {% else %}
+              <i class="fas fa-blueprint text-gold display-4 mb-3"></i>
+              <h5 class="text-dark">Floor Plan Available on Request</h5>
+              <p class="text-muted small">Request full architectural high-res drawings and dimensional layout via WhatsApp.</p>
+            {% endif %}
+            <button class="btn btn-outline-gold btn-sm" data-bs-toggle="modal" data-bs-target="#scheduleVisitModal" data-property-id="{{ property.id }}" data-property-title="{{ property.title }}">
+              <i class="fas fa-download me-1"></i> Request Detailed Floor Plan
+            </button>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Short Videos / Walkthrough Section -->
+        {% if videos and videos|length > 0 %}
+        <div class="search-card p-4 p-md-5 mb-4">
+          <h3 class="font-heading fs-4 mb-3 text-gold">
+            <i class="fas fa-video me-2"></i>Property Video Walkthrough
+          </h3>
+          <div class="gold-divider-start"></div>
+          <div class="row g-3">
+            {% for vid in videos %}
+              <div class="col-md-{% if videos|length == 1 %}12{% else %}6{% endif %}">
+                <div class="card h-100 border shadow-sm overflow-hidden">
+                  {% if vid.endswith('.mp4') or vid.endswith('.webm') or vid.endswith('.ogg') or '/uploads/' in vid %}
+                    <video class="w-100 rounded" controls preload="metadata" style="max-height: 320px; object-fit: cover;">
+                      <source src="{{ vid }}">
+                      Your browser does not support the video tag.
+                    </video>
+                  {% elif 'youtube.com' in vid or 'youtu.be' in vid %}
+                    {% set yt_id = vid.split('v=')[1].split('&')[0] if 'v=' in vid else vid.split('/')[-1] %}
+                    <div class="ratio ratio-16x9">
+                      <iframe src="https://www.youtube.com/embed/{{ yt_id }}" title="Property Video" allowfullscreen></iframe>
+                    </div>
+                  {% else %}
+                    <div class="p-4 text-center bg-light">
+                      <i class="fas fa-play-circle text-gold fa-3x mb-2"></i>
+                      <div class="fw-bold mb-2">Video Walkthrough Available</div>
+                      <a href="{{ vid }}" target="_blank" class="btn btn-gold btn-sm">
+                        <i class="fas fa-external-link-alt me-1"></i> Watch Video Tour
+                      </a>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Location & Nearby Landmarks -->
+        {% if is_visible('prop_landmarks') and landmarks %}
+          <div class="search-card p-4 p-md-5 mb-4">
+            <h3 class="font-heading fs-4 mb-3 text-gold">
+              <i class="fas fa-map-marked-alt me-2"></i>Strategic Connectivity & Landmarks
+            </h3>
+            <div class="gold-divider-start"></div>
+            <div class="row g-3">
+              {% for lm in landmarks %}
+                <div class="col-md-6">
+                  <div class="p-3 bg-light rounded border d-flex align-items-center gap-3">
+                    <i class="fas fa-route text-gold fs-5"></i>
+                    <span class="text-dark fw-medium">{{ lm }}</span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Interactive EMI Calculator -->
+        {% if is_visible('prop_emi_calculator') %}
+        <div class="search-card p-4 p-md-5 mb-4">
+          <h3 class="font-heading fs-4 mb-2 text-gold">
+            <i class="fas fa-calculator me-2"></i>Home Loan EMI Estimator
+          </h3>
+          <p class="text-muted small mb-4">Calculate your approximate monthly EMI based on current Pune home loan interest rates.</p>
+
+          <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+              <label class="form-label-custom">Loan Amount (₹)</label>
+              <input type="number" id="emiAmount" class="form-control form-control-custom" value="{{ (property.price * 0.8)|round|int }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label-custom">Interest Rate (%)</label>
+              <input type="number" step="0.1" id="emiRate" class="form-control form-control-custom" value="8.5">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label-custom">Tenure (Years)</label>
+              <input type="number" id="emiTenure" class="form-control form-control-custom" value="20">
+            </div>
+            <div class="col-12 mt-3 p-3 bg-light rounded border border-gold d-flex justify-content-between align-items-center">
+              <div>
+                <span class="text-muted small text-uppercase">Estimated Monthly EMI</span>
+                <div id="emiResult" class="font-heading fs-3 text-gold fw-bold">Calculating...</div>
+              </div>
+              <div>
+                <small class="text-muted d-block">Zero Processing Fee Assist</small>
+                <span class="badge bg-gold text-black">Bank Tie-ups Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+
+      <!-- Right Column: Sticky Action Form & Contact Agent -->
+      {% if is_visible('prop_agent_card') %}
+      <div class="col-lg-4">
+        <div class="sidebar-lead-card">
+          
+          <!-- Listing Attribution Badge -->
+          <div class="p-3 mb-3 bg-light rounded border">
+            {% if property.owner_role == 'agent' %}
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <i class="fas fa-user-tie text-gold fs-5"></i>
+                <div>
+                  <strong class="text-dark d-block small">Listed by Certified Agent</strong>
+                  <span class="text-gold fw-bold">{{ property.owner_name or property.contact_person or 'Verified Channel Partner' }}</span>
+                </div>
+              </div>
+              {% if property.owner_agency %}
+                <small class="text-muted d-block"><i class="fas fa-building fa-xs me-1 text-gold"></i>{{ property.owner_agency }}</small>
+              {% endif %}
+              {% if property.owner_rera %}
+                <small class="text-muted d-block"><i class="fas fa-shield-alt fa-xs me-1 text-gold"></i>MahaRERA: {{ property.owner_rera }}</small>
+              {% endif %}
+            {% elif property.owner_role == 'owner' %}
+              <div class="d-flex align-items-center gap-2">
+                <i class="fas fa-user-shield text-success fs-5"></i>
+                <div>
+                  <strong class="text-dark d-block small">Direct Property Owner</strong>
+                  <span class="text-dark fw-bold">{{ property.owner_name or property.contact_person or 'Verified Owner' }}</span>
+                  <small class="text-success d-block"><i class="fas fa-check-circle me-1"></i>Zero Brokerage Listing</small>
+                </div>
+              </div>
+            {% else %}
+              <div class="d-flex align-items-center gap-2">
+                <i class="fas fa-building text-gold fs-5"></i>
+                <div>
+                  <strong class="text-dark d-block small">{{ company_name }} Verified</strong>
+                  <span class="text-gold fw-bold">Official Builder Direct Inventory</span>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+
+          <h4 class="font-heading fs-5 mb-2 text-dark">Direct Enquiry & Tour</h4>
+          <p class="text-muted small mb-4">Connect directly regarding {{ property.title }} in {{ property.sub_location or 'Pune' }}.</p>
+
+          <!-- Direct CTAs -->
+          <div class="d-grid gap-2 mb-4">
+            <!-- WhatsApp Button with dynamic prefilled property inquiry text -->
+            {% set prop_page_url = request.url if request else url_for('property_detail', slug_or_id=property.slug, _external=True) %}
+            {% set whatsapp_num = property.contact_phone or property.owner_phone or company_whatsapp_raw %}
+            <a href="{{ build_whatsapp_url(listing_title=property.title, listing_url=prop_page_url, phone=whatsapp_num) }}" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp py-3">
+              <i class="fab fa-whatsapp fs-5 me-1"></i> WhatsApp Property Desk
+            </a>
+
+            <!-- Click to Call -->
+            {% set call_num = property.contact_phone or property.owner_phone or company_phone_raw %}
+            <a href="tel:{{ call_num|clean_phone }}" class="btn btn-outline-gold py-3">
+              <i class="fas fa-phone-alt me-1"></i> Call Advisor: {{ property.contact_phone or property.owner_phone or company_phone }}
+            </a>
+
+            <!-- Schedule Site Visit Modal Trigger -->
+            <button class="btn btn-gold py-3" data-bs-toggle="modal" data-bs-target="#scheduleVisitModal" data-property-id="{{ property.id }}" data-property-title="{{ property.title }}">
+              <i class="fas fa-calendar-check me-1"></i> Schedule a Site Visit
+            </button>
+          </div>
+
+          <!-- Share Button -->
+          <div class="mb-4 text-center">
+            <button id="sharePropertyBtn" data-title="{{ property.title }}" class="btn btn-outline-secondary btn-sm w-100 text-dark">
+              <i class="fas fa-share-alt me-1"></i> Share This Property
+            </button>
+          </div>
+
+          {% if is_visible('form_property_enquiry') %}
+          <div class="gold-divider my-4"></div>
+
+          <!-- Quick On-Page Enquiry Form -->
+          <h5 class="font-heading fs-6 mb-3 text-gold">Send Message to Agent</h5>
+          <form action="{{ url_for('handle_enquiry') }}" method="POST">
+            <input type="hidden" name="enquiry_type" value="Property Detail Page">
+            <input type="hidden" name="property_id" value="{{ property.id }}">
+            <input type="hidden" name="property_title" value="{{ property.title }}">
+            <input type="hidden" name="website_enquiry_url" value="{{ request.url if request else '' }}" class="enquiry-page-url">
+
+            <div class="mb-3">
+              <label class="form-label-custom">Your Name <span class="text-danger">*</span></label>
+              <input type="text" name="name" class="form-control form-control-custom" placeholder="e.g. Rahul Patil" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label-custom">Mobile Number <span class="text-danger">*</span></label>
+              <input type="tel" name="phone" class="form-control form-control-custom" placeholder="e.g. 9822012345" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label-custom">Email Address</label>
+              <input type="email" name="email" class="form-control form-control-custom" placeholder="rahul@example.com">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label-custom">Message</label>
+              <textarea name="message" class="form-control form-control-custom" rows="3" placeholder="I am interested in this property. Please call me back."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-gold w-100 py-2">
+              <i class="fas fa-paper-plane me-1"></i> Submit Enquiry
+            </button>
+          </form>
+          {% endif %}
+
+          <!-- Security notice -->
+          <div class="mt-4 pt-3 border-top border-secondary text-center">
+            <small class="text-muted">
+              <i class="fas fa-shield-alt text-gold me-1"></i> Zero spam policy. We never share contact details with unverified third parties.
+            </small>
+          </div>
+
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Similar Properties Section -->
+    {% if is_visible('prop_similar_properties') and similar_properties %}
+      <div class="mt-5 pt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Recommendations</span>
+            <h3 class="font-heading fs-3 mb-0">Similar Properties in {{ property.sub_location or 'Pune' }}</h3>
+          </div>
+          <a href="{{ url_for('properties', location=property.sub_location) }}" class="btn btn-outline-gold btn-sm">
+            View More in {{ property.sub_location }}
+          </a>
+        </div>
+
+        <div class="row g-4">
+          {% for sim in similar_properties %}
+            <div class="col-lg-4 col-md-6">
+              <div class="property-card">
+                <div class="property-img-wrapper" style="height: 200px;">
+                  <img src="{{ sim.featured_image }}" alt="{{ sim.title }}" class="property-img" loading="lazy">
+                  <div class="property-price-tag">{{ sim.price_display }}</div>
+                </div>
+                <div class="property-body">
+                  <div class="property-category">{{ sim.category }}</div>
+                  <h4 class="property-title fs-6">
+                    <a href="{{ url_for('property_detail', slug_or_id=sim.slug) }}">{{ sim.title }}</a>
+                  </h4>
+                  <div class="property-location mb-3">
+                    <i class="fas fa-map-marker-alt text-gold"></i> {{ sim.location }}
+                  </div>
+                  <div class="property-actions mt-auto">
+                    <a href="{{ url_for('property_detail', slug_or_id=sim.slug) }}" class="btn btn-outline-gold btn-sm w-100">
+                      View Details
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}
+

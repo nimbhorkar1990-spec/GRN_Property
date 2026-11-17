@@ -1,0 +1,821 @@
+{% extends 'dashboard/base_user.html' %}
+
+{% block title %}Client Enquiry Feedback | Portal - {{ company_name }}{% endblock %}
+
+{% block dashboard_content %}
+<!-- Header & Toolbar -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+  <div>
+    <h1 class="font-heading fs-3 text-dark mb-1">
+      <i class="fas fa-comments text-gold me-2"></i>Client Enquiry Feedback Management
+    </h1>
+    <p class="text-muted small mb-0">Record and track prospective buyer/tenant feedback for your property enquiries.</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <button type="button" class="btn btn-primary btn-sm" id="btnUserRefreshEnquiries" title="Fetch newly received customer enquiries directly into Feedback">
+      <i class="fas fa-sync-alt me-1" id="userRefreshIcon"></i> Refresh Enquiries
+    </button>
+    <button type="button" class="btn btn-gold btn-sm" data-bs-toggle="modal" data-bs-target="#userAddFeedbackModal">
+      <i class="fas fa-plus-circle me-1"></i> Add Client Feedback
+    </button>
+    <a href="{{ url_for('user_feedback_export', q=q, project=project, source=selected_source, date_from=date_from, date_to=date_to) }}" class="btn btn-success btn-sm">
+      <i class="fas fa-file-excel me-1"></i> Export Excel (.xlsx)
+    </a>
+  </div>
+</div>
+
+<!-- Dynamic Refresh Alert Container -->
+<div id="userRefreshAlertContainer" class="d-none mb-3"></div>
+
+<!-- Search & Filters -->
+<div class="admin-card p-3 mb-4">
+  <form method="GET" action="{{ url_for('user_feedback') }}" class="row g-2 align-items-end">
+    <div class="col-lg-3 col-md-6">
+      <label class="form-label small text-muted mb-1">Search Feedback</label>
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-light text-muted border"><i class="fas fa-search"></i></span>
+        <input type="text" name="q" class="form-control" placeholder="Search client name, contact, project..." value="{{ q }}">
+      </div>
+    </div>
+    <div class="col-lg-2 col-md-6">
+      <label class="form-label small text-muted mb-1">Project Name</label>
+      <select name="project" class="form-select form-select-sm">
+        <option value="">All Projects</option>
+        {% for p in distinct_projects %}
+          <option value="{{ p }}" {% if project == p %}selected{% endif %}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-lg-2 col-md-6">
+      <label class="form-label small text-muted mb-1">Enquiry Source</label>
+      <select name="source" class="form-select form-select-sm">
+        <option value="">All Enquiry Sources</option>
+        {% for src in lead_sources %}
+          <option value="{{ src.source_name }}" {% if selected_source == src.source_name %}selected{% endif %}>{{ src.source_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-lg-3 col-md-6">
+      <label class="form-label small fw-bold text-dark mb-1">
+        <i class="fas fa-sort-amount-down text-gold me-1"></i> Sort By Created Date & Time
+      </label>
+      <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="newest" {% if sort == 'newest' or not sort %}selected{% endif %}>Newest First (Latest enquiries first)</option>
+        <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest First (Oldest enquiries first)</option>
+      </select>
+    </div>
+    <div class="col-lg-1 col-md-3 col-6">
+      <label class="form-label small text-muted mb-1">From Date</label>
+      <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+    </div>
+    <div class="col-lg-1 col-md-3 col-6">
+      <label class="form-label small text-muted mb-1">To Date</label>
+      <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+    </div>
+    <div class="col-lg-2 col-md-4 col-6">
+      <label class="form-label small text-muted mb-1">Records Per Page</label>
+      <select name="per_page" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="10" {% if per_page == 10 %}selected{% endif %}>10 Records</option>
+        <option value="50" {% if per_page == 50 %}selected{% endif %}>50 Records</option>
+        <option value="100" {% if per_page == 100 %}selected{% endif %}>100 Records</option>
+        <option value="1000" {% if per_page == 1000 %}selected{% endif %}>1000 Records</option>
+      </select>
+    </div>
+    <div class="col-lg-1 col-md-12 d-flex gap-1">
+      <button type="submit" class="btn btn-gold btn-sm w-100" title="Apply Filter"><i class="fas fa-filter"></i></button>
+      {% if q or project or selected_source or date_from or date_to or sort != 'newest' or per_page != 10 %}
+        <a href="{{ url_for('user_feedback') }}" class="btn btn-light btn-sm border" title="Reset"><i class="fas fa-times"></i></a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Feedback Table (All 13 Columns) -->
+<div class="admin-card mb-4">
+  <div class="admin-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge bg-gold text-dark fw-bold">{{ total_count }}</span>
+      <strong class="text-dark">Enquiry Feedback Records</strong>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-outline-danger btn-sm" id="btnBulkDeleteUserFeedback" disabled data-bs-toggle="modal" data-bs-target="#userBulkDeleteFeedbackModal">
+        <i class="fas fa-trash-alt me-1"></i> Delete Selected (<span id="selectedUserFeedbackCount">0</span>)
+      </button>
+      <button type="button" class="btn btn-outline-secondary btn-sm d-none" id="btnDeselectAllUserFeedback">
+        Deselect All
+      </button>
+      <small class="text-muted ms-2">Page {{ page }} of {{ total_pages }}</small>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table admin-table table-hover align-middle mb-0" style="min-width: 1400px;">
+      <thead>
+        <tr>
+          <th style="width: 40px;" class="text-center">
+            <input type="checkbox" class="form-check-input" id="selectAllUserFeedback" title="Select All Feedback Records">
+          </th>
+          <th style="width: 50px;">SN</th>
+          <th style="min-width: 140px;">Client Name</th>
+          <th style="min-width: 140px;">Client Contact</th>
+          <th style="min-width: 150px;">Enquiry Date & Time</th>
+          <th style="min-width: 140px;">Enquiry Source</th>
+          <th style="min-width: 160px;">Enquiry Project Name</th>
+          <th style="min-width: 100px;">Configuration</th>
+          <th style="min-width: 120px;">Cost (₹)</th>
+          <th style="min-width: 110px;">Carpet</th>
+          <th style="min-width: 120px;">Possession</th>
+          <th style="min-width: 150px;">Enquiry URL</th>
+          <th style="min-width: 220px;">Client Feedback</th>
+          <th style="min-width: 130px;">Feedback By User</th>
+          <th style="min-width: 150px;">Feedback Date & Time</th>
+          <th style="min-width: 100px;" class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for fb in feedbacks %}
+          <tr>
+            <td class="text-center">
+              <input type="checkbox" class="form-check-input user-feedback-checkbox" value="{{ fb.id }}" title="Select Feedback #{{ fb.id }}">
+            </td>
+            <td>
+              <span class="badge bg-light border text-dark font-monospace">#{{ fb.id }}</span>
+              {% if fb.enquiry_id %}
+                <span class="badge bg-gold text-dark d-block mt-1 font-monospace" style="font-size: 0.7rem;" title="Linked CRM Lead ID">Lead #{{ fb.enquiry_id }}</span>
+              {% endif %}
+            </td>
+            <td><strong class="text-dark">{{ fb.client_name }}</strong></td>
+            <td>
+              <div class="d-flex align-items-center gap-1">
+                <span class="text-dark small font-monospace">{{ fb.client_contact }}</span>
+                {% if fb.client_contact %}
+                  <a href="tel:{{ fb.client_contact }}" class="btn btn-sm btn-outline-info p-1 py-0 ms-1" title="Call"><i class="fas fa-phone fa-xs"></i></a>
+                  <a href="https://wa.me/{{ fb.client_contact|replace('+', '')|replace(' ', '') }}" target="_blank" class="btn btn-sm btn-outline-success p-1 py-0" title="WhatsApp"><i class="fab fa-whatsapp fa-xs"></i></a>
+                {% endif %}
+              </div>
+            </td>
+            <td><small class="text-dark">{{ fb.enquiry_datetime }}</small></td>
+            <td>
+              <span class="badge bg-light border text-dark">
+                <i class="fas fa-bullhorn text-gold me-1"></i>{{ fb.enquiry_source or 'Website Direct' }}
+              </span>
+            </td>
+            <td><span class="badge bg-light border text-dark">{{ fb.project_name }}</span></td>
+            <td><span class="small text-dark">{{ fb.configuration or '—' }}</span></td>
+            <td>
+              {% if fb.cost and fb.cost > 0 %}
+                <strong class="text-dark small">{{ fb.cost|format_currency }}</strong>
+              {% else %}
+                <span class="text-muted small">—</span>
+              {% endif %}
+            </td>
+            <td><span class="small text-dark">{{ fb.carpet or '—' }}</span></td>
+            <td><span class="small text-dark">{{ fb.possession or '—' }}</span></td>
+            <td>
+              {% if fb.website_enquiry_url and fb.website_enquiry_url not in ['—', '-', 'None', 'N/A', ''] %}
+                <a href="{{ fb.website_enquiry_url }}" target="_blank" class="text-truncate d-inline-block small text-gold" style="max-width: 140px;" title="{{ fb.website_enquiry_url }}">
+                  <i class="fas fa-external-link-alt fa-xs me-1"></i>View Link
+                </a>
+              {% else %}
+                <span class="text-muted small">N/A</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="small text-dark text-wrap" style="max-width: 250px; max-height: 80px; overflow-y: auto;">
+                {{ fb.client_feedback }}
+              </div>
+            </td>
+            <td>
+              <span class="badge bg-light border text-dark">
+                <i class="fas fa-user-circle text-gold me-1"></i>{{ fb.feedback_by_username }}
+              </span>
+            </td>
+            <td><small class="text-muted">{{ fb.feedback_datetime }}</small></td>
+            <td class="text-center">
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-gold btn-user-edit-feedback" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#userEditFeedbackModal" 
+                        data-id="{{ fb.id }}"
+                        data-enquiry-id="{{ fb.enquiry_id or '' }}"
+                        data-client-name="{{ fb.client_name|e }}"
+                        data-client-contact="{{ fb.client_contact|e }}"
+                        data-enquiry-datetime="{{ fb.enquiry_datetime|e }}"
+                        data-enquiry-source="{{ fb.enquiry_source or 'Website Direct' }}"
+                        data-project-name="{{ fb.project_name|e }}"
+                        data-configuration="{{ fb.configuration or ''|e }}"
+                        data-cost="{{ fb.cost or '' }}"
+                        data-carpet="{{ fb.carpet or ''|e }}"
+                        data-possession="{{ fb.possession or ''|e }}"
+                        data-url="{{ fb.website_enquiry_url or ''|e }}"
+                        data-feedback="{{ fb.client_feedback|e }}"
+                        data-feedback-by="{{ fb.feedback_by_username or 'Agent' }}"
+                        data-feedback-dt="{{ fb.feedback_datetime or '' }}"
+                        title="Edit">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button type="button" class="btn btn-outline-danger" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#userDeleteFeedbackModal" 
+                        data-id="{{ fb.id }}"
+                        data-name="{{ fb.client_name|e }}"
+                        title="Delete">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="16" class="text-center py-5">
+              <i class="fas fa-comments fs-1 text-muted d-block mb-3"></i>
+              <h5 class="text-dark">No Enquiry Feedback Found</h5>
+              <p class="text-muted small">Record prospective client interactions and feedback on your properties.</p>
+              <button type="button" class="btn btn-gold btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#userAddFeedbackModal">
+                <i class="fas fa-plus me-1"></i> Add New Feedback
+              </button>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if total_pages > 1 %}
+    <div class="p-3 border-top d-flex justify-content-between align-items-center">
+      <small class="text-muted">Showing {{ feedbacks|length }} of {{ total_count }} entries ({{ per_page }} per page)</small>
+      <nav aria-label="Feedback Pagination">
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('user_feedback', page=page-1, per_page=per_page, q=q, project=project, source=selected_source, date_from=date_from, date_to=date_to, sort=sort) }}">&laquo; Prev</a>
+          </li>
+          {% for pnum in range(1, total_pages + 1) %}
+            <li class="page-item {% if pnum == page %}active{% endif %}">
+              <a class="page-link" href="{{ url_for('user_feedback', page=pnum, per_page=per_page, q=q, project=project, source=selected_source, date_from=date_from, date_to=date_to, sort=sort) }}">{{ pnum }}</a>
+            </li>
+          {% endfor %}
+          <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('user_feedback', page=page+1, per_page=per_page, q=q, project=project, source=selected_source, date_from=date_from, date_to=date_to, sort=sort) }}">Next &raquo;</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Modals for User Dashboard -->
+<div class="modal fade" id="userAddFeedbackModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content modal-content-grn">
+      <div class="modal-header">
+        <h5 class="modal-title font-heading text-dark"><i class="fas fa-plus-circle text-gold me-2"></i>Record Client Enquiry Feedback</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url_for('user_feedback_add') }}">
+        <div class="modal-body p-4">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Client Name <span class="text-danger">*</span></label>
+              <input type="text" name="client_name" class="form-control" placeholder="e.g. Anand Deshmukh" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Client Contact <span class="text-danger">*</span></label>
+              <input type="text" name="client_contact" class="form-control" placeholder="e.g. +91 98220 54321" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Enquiry Date & Time</label>
+              <input type="datetime-local" name="enquiry_datetime" class="form-control" id="userAddDt">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Enquiry Source <span class="text-danger">*</span></label>
+              <select name="enquiry_source" class="form-select" required>
+                {% for src in lead_sources %}
+                  <option value="{{ src.source_name }}" {% if src.source_name == 'Website Direct' %}selected{% endif %}>{{ src.source_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-12">
+              <label class="form-label small fw-bold text-dark">Project Name <span class="text-danger">*</span></label>
+              <input type="text" name="project_name" class="form-control" list="userProjList" placeholder="Project name" required>
+              <datalist id="userProjList">
+                {% for proj in property_projects %}
+                  <option value="{{ proj }}">
+                {% endfor %}
+              </datalist>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark">Configuration</label>
+              <select name="configuration" class="form-select">
+                <option value="">Select Configuration</option>
+                <option value="1 BHK">1 BHK</option>
+                <option value="2 BHK">2 BHK</option>
+                <option value="3 BHK">3 BHK</option>
+                <option value="4 BHK">4 BHK</option>
+                <option value="Commercial / Other">Commercial / Other</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark">Cost / Budget (₹)</label>
+              <input type="number" step="1000" name="cost" class="form-control" placeholder="e.g. 8500000">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark">Carpet Area</label>
+              <input type="text" name="carpet" class="form-control" placeholder="e.g. 780 sq ft">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Possession</label>
+              <input type="text" name="possession" class="form-control" placeholder="e.g. Immediate / Ready">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Website Enquiry URL</label>
+              <input type="url" name="website_enquiry_url" class="form-control" placeholder="https://...">
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-bold text-dark">Client Feedback <span class="text-danger">*</span></label>
+              <textarea name="client_feedback" class="form-control" rows="4" placeholder="Feedback notes from client discussion..." required></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-top">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold btn-sm"><i class="fas fa-save me-1"></i> Save Feedback</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="userEditFeedbackModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content modal-content-grn">
+      <div class="modal-header">
+        <h5 class="modal-title font-heading text-dark"><i class="fas fa-edit text-gold me-2"></i>Update Client Feedback</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" id="userEditFeedbackForm">
+        <input type="hidden" name="feedback_id" id="u_edit_feedback_id">
+        <div class="modal-body p-4">
+
+          <!-- Dynamic Fetch Loading Indicator -->
+          <div id="u_editFeedbackLoading" class="text-center py-3 mb-3 border rounded bg-light" style="display: none;">
+            <div class="spinner-border spinner-border-sm text-gold me-2" role="status"></div>
+            <span class="small text-muted fw-semibold">Fetching enquiry details from database...</span>
+          </div>
+
+          <!-- Record Header Info: SN / Enquiry ID, Feedback By, Feedback Date and Time -->
+          <div class="p-3 mb-3 rounded border bg-light d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+              <span class="text-muted small fw-bold text-uppercase d-block" style="font-size: 0.72rem;">SN / Enquiry ID</span>
+              <span class="badge bg-gold text-dark fs-6" id="u_edit_sn_badge">#0</span>
+              <span class="badge bg-info text-dark ms-1" id="u_edit_enquiry_id_badge" style="display: none;"></span>
+            </div>
+            <div>
+              <span class="text-muted small fw-bold text-uppercase d-block" style="font-size: 0.72rem;">Feedback By Username</span>
+              <span class="fw-semibold text-dark" id="u_edit_feedback_by_display">-</span>
+            </div>
+            <div>
+              <span class="text-muted small fw-bold text-uppercase d-block" style="font-size: 0.72rem;">Feedback Date and Time</span>
+              <span class="text-muted small" id="u_edit_feedback_datetime_display">-</span>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Client Name <span class="text-danger">*</span></label>
+              <input type="text" name="client_name" id="u_edit_name" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Client Contact <span class="text-danger">*</span></label>
+              <input type="text" name="client_contact" id="u_edit_contact" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Enquiry Date & Time</label>
+              <input type="text" name="enquiry_datetime" id="u_edit_dt" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Enquiry Source <span class="text-danger">*</span></label>
+              <select name="enquiry_source" id="u_edit_source" class="form-select" required>
+                {% for src in lead_sources %}
+                  <option value="{{ src.source_name }}">{{ src.source_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-12">
+              <label class="form-label small fw-bold text-dark">Project Name <span class="text-danger">*</span></label>
+              <input type="text" name="project_name" id="u_edit_project" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark">Configuration</label>
+              <input type="text" name="configuration" id="u_edit_config" class="form-control">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark">Cost (₹)</label>
+              <input type="number" step="1000" name="cost" id="u_edit_cost" class="form-control">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-bold text-dark">Carpet</label>
+              <input type="text" name="carpet" id="u_edit_carpet" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Possession</label>
+              <input type="text" name="possession" id="u_edit_possession" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-dark">Website URL</label>
+              <input type="url" name="website_enquiry_url" id="u_edit_url" class="form-control">
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-bold text-dark">Client Feedback <span class="text-danger">*</span></label>
+              <textarea name="client_feedback" id="u_edit_feedback" class="form-control" rows="4" required></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-top">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-gold btn-sm"><i class="fas fa-check me-1"></i> Update Feedback</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="userDeleteFeedbackModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-content-grn">
+      <div class="modal-header">
+        <h5 class="modal-title font-heading text-danger"><i class="fas fa-trash me-2"></i>Delete Feedback</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" id="userDeleteFeedbackForm">
+        <div class="modal-body p-4 text-center">
+          <i class="fas fa-trash-alt fs-1 text-danger mb-3"></i>
+          <h6 class="text-dark">Are you sure you want to delete this feedback record?</h6>
+          <p class="text-muted small mb-0">Record for client <strong class="text-dark" id="u_del_name"></strong> will be permanently deleted.</p>
+        </div>
+        <div class="modal-footer bg-light border-top">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt me-1"></i> Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Delete User Feedback Modal -->
+<div class="modal fade" id="userBulkDeleteFeedbackModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content modal-content-grn">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title font-heading text-danger">
+          <i class="fas fa-trash-alt me-2"></i>Delete Selected Feedback Records
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="userBulkDeleteFeedbackForm" method="POST" action="{{ url_for('user_feedback_bulk_delete') }}">
+        <div class="modal-body p-4 text-center">
+          <div class="mb-3 text-danger">
+            <i class="fas fa-exclamation-triangle fa-3x"></i>
+          </div>
+          <h6 class="fw-bold text-dark mb-2">Are you sure you want to permanently delete the selected enquiry records?</h6>
+          <p class="text-muted small mb-3">
+            Total Selected: <span class="badge bg-danger fs-6" id="userBulkDeleteFeedbackModalCount">0</span>
+          </p>
+          <p class="text-secondary small mb-0">
+            This action cannot be undone. All selected feedback records will be permanently removed.
+          </p>
+          <div id="userBulkDeleteFeedbackHiddenInputs"></div>
+        </div>
+        <div class="modal-footer border-top">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger btn-sm px-3" id="btnConfirmUserBulkDeleteFeedback">
+            <i class="fas fa-trash-alt me-1"></i> Confirm Delete
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block user_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const dtInput = document.getElementById('userAddDt');
+  if (dtInput) {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    dtInput.value = now.toISOString().slice(0, 16);
+  }
+
+  function fillUserEditModal(data) {
+    if (!data) return;
+    const fId = data.id || '';
+    const hiddenId = document.getElementById('u_edit_feedback_id');
+    if (hiddenId) hiddenId.value = fId;
+
+    const snBadge = document.getElementById('u_edit_sn_badge');
+    if (snBadge) snBadge.textContent = '#' + fId;
+
+    const enqBadge = document.getElementById('u_edit_enquiry_id_badge');
+    if (enqBadge) {
+      if (data.enquiry_id) {
+        enqBadge.textContent = 'Lead #' + data.enquiry_id;
+        enqBadge.style.display = 'inline-block';
+      } else {
+        enqBadge.style.display = 'none';
+      }
+    }
+
+    const fbBy = document.getElementById('u_edit_feedback_by_display');
+    if (fbBy) fbBy.textContent = data.feedback_by_username || 'Agent';
+
+    const fbDt = document.getElementById('u_edit_feedback_datetime_display');
+    if (fbDt) fbDt.textContent = data.feedback_datetime || 'N/A';
+
+    document.getElementById('u_edit_name').value = data.client_name || '';
+    document.getElementById('u_edit_contact').value = data.client_contact || '';
+    document.getElementById('u_edit_dt').value = data.enquiry_datetime || '';
+
+    const sourceVal = data.enquiry_source || 'Website Direct';
+    const sourceSelect = document.getElementById('u_edit_source');
+    if (sourceSelect) {
+      let found = false;
+      for (let i = 0; i < sourceSelect.options.length; i++) {
+        if (sourceSelect.options[i].value === sourceVal) {
+          found = true;
+          break;
+        }
+      }
+      if (!found && sourceVal) {
+        const opt = document.createElement('option');
+        opt.value = sourceVal;
+        opt.textContent = sourceVal;
+        sourceSelect.appendChild(opt);
+      }
+      sourceSelect.value = sourceVal;
+    }
+
+    document.getElementById('u_edit_project').value = data.project_name || '';
+    document.getElementById('u_edit_config').value = data.configuration || '';
+    document.getElementById('u_edit_cost').value = (data.cost !== undefined && data.cost !== null && data.cost !== 0) ? data.cost : (data.cost === 0 ? '0' : '');
+    document.getElementById('u_edit_carpet').value = data.carpet || '';
+    document.getElementById('u_edit_possession').value = data.possession || '';
+    document.getElementById('u_edit_url').value = data.website_enquiry_url || '';
+    document.getElementById('u_edit_feedback').value = data.client_feedback || '';
+  }
+
+  const editModal = document.getElementById('userEditFeedbackModal');
+  if (editModal) {
+    editModal.addEventListener('show.bs.modal', function(event) {
+      const button = event.relatedTarget ? (event.relatedTarget.closest('[data-id]') || event.relatedTarget) : null;
+      if (!button) return;
+
+      const id = button.getAttribute('data-id');
+      if (!id) return;
+
+      document.getElementById('userEditFeedbackForm').action = '/dashboard/feedback/edit/' + id;
+
+      // 1. Immediately apply fallback data attributes for instant responsiveness
+      fillUserEditModal({
+        id: id,
+        enquiry_id: button.getAttribute('data-enquiry-id') || '',
+        client_name: button.getAttribute('data-client-name') || '',
+        client_contact: button.getAttribute('data-client-contact') || '',
+        enquiry_datetime: button.getAttribute('data-enquiry-datetime') || '',
+        enquiry_source: button.getAttribute('data-enquiry-source') || 'Website Direct',
+        project_name: button.getAttribute('data-project-name') || '',
+        configuration: button.getAttribute('data-configuration') || '',
+        cost: button.getAttribute('data-cost') || '',
+        carpet: button.getAttribute('data-carpet') || '',
+        possession: button.getAttribute('data-possession') || '',
+        website_enquiry_url: button.getAttribute('data-url') || '',
+        client_feedback: button.getAttribute('data-feedback') || '',
+        feedback_by_username: button.getAttribute('data-feedback-by') || '',
+        feedback_datetime: button.getAttribute('data-feedback-dt') || ''
+      });
+
+      // 2. Fetch fresh record from database via API
+      const loading = document.getElementById('u_editFeedbackLoading');
+      if (loading) loading.style.display = 'block';
+
+      fetch('/api/feedback/' + id)
+        .then(res => {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(payload => {
+          if (payload && payload.success && payload.feedback) {
+            fillUserEditModal(payload.feedback);
+          }
+        })
+        .catch(err => {
+          console.warn('API fetch for feedback #' + id + ' failed, DOM fallback preserved:', err);
+        })
+        .finally(() => {
+          if (loading) loading.style.display = 'none';
+        });
+    });
+  }
+
+  const delModal = document.getElementById('userDeleteFeedbackModal');
+  if (delModal) {
+    delModal.addEventListener('show.bs.modal', function(event) {
+      const button = event.relatedTarget;
+      const id = button.getAttribute('data-id');
+      const name = button.getAttribute('data-name');
+      document.getElementById('userDeleteFeedbackForm').action = '/dashboard/feedback/delete/' + id;
+      document.getElementById('u_del_name').textContent = name;
+    });
+  }
+
+  // Handle User/Agent Refresh Enquiries
+  const btnUserRefresh = document.getElementById('btnUserRefreshEnquiries');
+  const userRefreshAlert = document.getElementById('userRefreshAlertContainer');
+
+  if (btnUserRefresh) {
+    btnUserRefresh.addEventListener('click', function() {
+      btnUserRefresh.disabled = true;
+      const origHtml = btnUserRefresh.innerHTML;
+      btnUserRefresh.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Refreshing Enquiries...';
+
+      if (userRefreshAlert) {
+        userRefreshAlert.className = 'alert alert-info alert-dismissible fade show small mb-3';
+        userRefreshAlert.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Connecting to website enquiry database and fetching latest leads...';
+        userRefreshAlert.classList.remove('d-none');
+      }
+
+      fetch('/dashboard/feedback/refresh', {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(errData => { throw new Error(errData.message || 'Server error occurred'); });
+        }
+        return response.json();
+      })
+      .then(data => {
+        btnUserRefresh.disabled = false;
+        btnUserRefresh.innerHTML = origHtml;
+
+        if (!userRefreshAlert) return;
+
+        if (data.success) {
+          if (data.count > 0) {
+            userRefreshAlert.className = 'alert alert-success alert-dismissible fade show small mb-3';
+            userRefreshAlert.innerHTML = `
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <i class="fas fa-check-circle me-2 text-success fs-6"></i>
+                  <strong>Enquiries Refreshed:</strong> ${data.message}
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            `;
+            setTimeout(() => {
+              window.location.reload();
+            }, 1200);
+          } else {
+            userRefreshAlert.className = 'alert alert-info alert-dismissible fade show small mb-3';
+            userRefreshAlert.innerHTML = `
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <i class="fas fa-info-circle me-2 text-info fs-6"></i>
+                  <strong>Status:</strong> ${data.message || 'No New Enquiries Found.'}
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            `;
+          }
+        } else {
+          userRefreshAlert.className = 'alert alert-danger alert-dismissible fade show small mb-3';
+          userRefreshAlert.innerHTML = `
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <i class="fas fa-exclamation-triangle me-2 text-danger fs-6"></i>
+                <strong>Database Error:</strong> ${data.message || 'Failed to refresh enquiries.'}
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          `;
+        }
+      })
+      .catch(err => {
+        btnUserRefresh.disabled = false;
+        btnUserRefresh.innerHTML = origHtml;
+
+        if (userRefreshAlert) {
+          userRefreshAlert.className = 'alert alert-danger alert-dismissible fade show small mb-3';
+          userRefreshAlert.innerHTML = `
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <i class="fas fa-exclamation-circle me-2 text-danger fs-6"></i>
+                <strong>Error:</strong> ${err.message || 'Failed to connect to enquiry database.'}
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          `;
+        }
+      });
+    });
+  }
+
+  // ===================================================================
+  // BULK DELETE USER FEEDBACK HANDLERS
+  // ===================================================================
+  const selectAll = document.getElementById('selectAllUserFeedback');
+  const checkboxes = document.querySelectorAll('.user-feedback-checkbox');
+  const btnBulkDelete = document.getElementById('btnBulkDeleteUserFeedback');
+  const btnDeselectAll = document.getElementById('btnDeselectAllUserFeedback');
+  const countSpan = document.getElementById('selectedUserFeedbackCount');
+  const modalCountSpan = document.getElementById('userBulkDeleteFeedbackModalCount');
+  const hiddenInputsContainer = document.getElementById('userBulkDeleteFeedbackHiddenInputs');
+  const bulkDeleteForm = document.getElementById('userBulkDeleteFeedbackForm');
+
+  function updateBulkSelection() {
+    const checked = Array.from(checkboxes).filter(cb => cb.checked);
+    const count = checked.length;
+    if (countSpan) countSpan.textContent = count;
+    if (modalCountSpan) modalCountSpan.textContent = count;
+
+    if (btnBulkDelete) {
+      btnBulkDelete.disabled = (count === 0);
+    }
+    if (btnDeselectAll) {
+      if (count > 0) {
+        btnDeselectAll.classList.remove('d-none');
+      } else {
+        btnDeselectAll.classList.add('d-none');
+      }
+    }
+
+    if (selectAll) {
+      if (checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked)) {
+        selectAll.checked = true;
+        selectAll.indeterminate = false;
+      } else if (checked.length > 0) {
+        selectAll.checked = false;
+        selectAll.indeterminate = true;
+      } else {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+      }
+    }
+  }
+
+  if (selectAll) {
+    selectAll.addEventListener('change', function() {
+      checkboxes.forEach(cb => { cb.checked = selectAll.checked; });
+      updateBulkSelection();
+    });
+  }
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', updateBulkSelection);
+  });
+
+  if (btnDeselectAll) {
+    btnDeselectAll.addEventListener('click', function() {
+      checkboxes.forEach(cb => { cb.checked = false; });
+      if (selectAll) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+      }
+      updateBulkSelection();
+    });
+  }
+
+  if (bulkDeleteForm) {
+    bulkDeleteForm.addEventListener('submit', function(e) {
+      hiddenInputsContainer.innerHTML = '';
+      const checked = Array.from(checkboxes).filter(cb => cb.checked);
+      if (checked.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one feedback record to delete.');
+        return false;
+      }
+      checked.forEach(cb => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'feedback_ids';
+        input.value = cb.value;
+        hiddenInputsContainer.appendChild(input);
+      });
+    });
+  }
+
+  const bulkModalElem = document.getElementById('userBulkDeleteFeedbackModal');
+  if (bulkModalElem) {
+    bulkModalElem.addEventListener('show.bs.modal', function() {
+      const checked = Array.from(checkboxes).filter(cb => cb.checked);
+      if (modalCountSpan) modalCountSpan.textContent = checked.length;
+    });
+  }
+});
+</script>
+{% endblock %}

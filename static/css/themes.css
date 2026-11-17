@@ -1,0 +1,1029 @@
+/* ===================================================================
+   GRN PROPERTIES - Multi-Theme Engine
+   Themes:
+   1. luxury-gold   : Signature Obsidian Black & 24K Gold (Default)
+   2. sapphire-blue : Royal Marine Navy & Electric Sapphire
+   3. emerald-green : Deep Forest & Imperial Jade
+   4. amethyst-purple: Velvet Royale Plum & Rose Gold
+   5. executive-light: Platinum Pearl & Crisp Executive Slate (Light Mode)
+   =================================================================== */
+
+/* -------------------------------------------------------------------
+   1. OBSIDIAN GOLD (DEFAULT LUXURY)
+   ------------------------------------------------------------------- */
+:root,
+[data-theme="luxury-gold"] {
+  --theme-name: "luxury-gold";
+  --grn-gold: #B8860B;
+  --grn-gold-light: #D4AF37;
+  --grn-gold-dark: #8C6608;
+  --grn-gold-glow: rgba(184, 134, 11, 0.2);
+  
+  --grn-black: #FAF9F6;
+  --grn-black-light: #F4F1EA;
+  --grn-card-bg: #FFFFFF;
+  --grn-card-border: #E8E2D5;
+  --grn-card-hover-border: #B8860B;
+  
+  --grn-white: #1A1A1A;
+  --grn-text-muted: #5A6270;
+  --grn-text-subtle: #8A92A0;
+  --grn-border-subtle: #E8E2D5;
+
+  --grn-topbar-bg: #F4F1EA;
+  --grn-navbar-bg: #FFFFFF;
+  --grn-footer-bg: #F4F1EA;
+  --grn-input-bg: #FFFFFF;
+  --grn-input-border: #D1C9B8;
+  --grn-input-text: #1A1A1A;
+  --grn-btn-gold-bg: linear-gradient(135deg, #D4AF37 0%, #B8860B 50%, #9A7007 100%);
+  --grn-btn-gold-hover: linear-gradient(135deg, #E2C058 0%, #C99614 50%, #A87D09 100%);
+  --grn-btn-gold-text: #FFFFFF;
+  --grn-badge-featured-bg: linear-gradient(135deg, #D4AF37, #B8860B);
+  --grn-badge-featured-text: #FFFFFF;
+
+  /* Admin portal overrides */
+  --admin-bg: #FAF9F6;
+  --admin-sidebar-bg: #FFFFFF;
+  --admin-card-bg: #FFFFFF;
+  --admin-card-border: #E8E2D5;
+  --admin-gold: #B8860B;
+  --admin-gold-light: #D4AF37;
+  --admin-text-main: #1A1A1A;
+  --admin-text-muted: #5A6270;
+}
+
+/* -------------------------------------------------------------------
+   2. SAPPHIRE ROYAL (NAVY & ELECTRIC BLUE)
+   ------------------------------------------------------------------- */
+[data-theme="sapphire-blue"] {
+  --theme-name: "sapphire-blue";
+  --grn-gold: #1E40AF;
+  --grn-gold-light: #3B82F6;
+  --grn-gold-dark: #1D4ED8;
+  --grn-gold-glow: rgba(30, 64, 175, 0.2);
+
+  --grn-black: #F0F6FF;
+  --grn-black-light: #E0EDFD;
+  --grn-card-bg: #FFFFFF;
+  --grn-card-border: #BFDBFE;
+  --grn-card-hover-border: #3B82F6;
+
+  --grn-white: #0F172A;
+  --grn-text-muted: #475569;
+  --grn-text-subtle: #64748B;
+  --grn-border-subtle: #DBEAFE;
+
+  --grn-topbar-bg: #E8F1FC;
+  --grn-navbar-bg: #FFFFFF;
+  --grn-footer-bg: #E8F1FC;
+  --grn-input-bg: #FFFFFF;
+  --grn-input-border: #BFDBFE;
+  --grn-input-text: #0F172A;
+  --grn-btn-gold-bg: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 50%, #1E40AF 100%);
+  --grn-btn-gold-hover: linear-gradient(135deg, #60A5FA 0%, #2563EB 50%, #1D4ED8 100%);
+  --grn-btn-gold-text: #FFFFFF;
+  --grn-badge-featured-bg: linear-gradient(135deg, #60A5FA, #2563EB);
+  --grn-badge-featured-text: #FFFFFF;
+
+  /* Admin portal overrides */
+  --admin-bg: #F0F6FF;
+  --admin-sidebar-bg: #FFFFFF;
+  --admin-card-bg: #FFFFFF;
+  --admin-card-border: #BFDBFE;
+  --admin-gold: #1E40AF;
+  --admin-gold-light: #3B82F6;
+  --admin-text-main: #0F172A;
+  --admin-text-muted: #475569;
+}
+
+/* -------------------------------------------------------------------
+   3. EMERALD PRESTIGE (FOREST & JADE)
+   ------------------------------------------------------------------- */
+[data-theme="emerald-green"] {
+  --theme-name: "emerald-green";
+  --grn-gold: #065F46;
+  --grn-gold-light: #059669;
+  --grn-gold-dark: #044E39;
+  --grn-gold-glow: rgba(6, 95, 70, 0.2);
+
+  --grn-black: #F0FDF4;
+  --grn-black-light: #DCFCE7;
+  --grn-card-bg: #FFFFFF;
+  --grn-card-border: #BBF7D0;
+  --grn-card-hover-border: #059669;
+
+  --grn-white: #06281E;
+  --grn-text-muted: #374151;
+  --grn-text-subtle: #4B5563;
+  --grn-border-subtle: #D1FAE5;
+
+  --grn-topbar-bg: #E7F8EE;
+  --grn-navbar-bg: #FFFFFF;
+  --grn-footer-bg: #E7F8EE;
+  --grn-input-bg: #FFFFFF;
+  --grn-input-border: #A7F3D0;
+  --grn-input-text: #06281E;
+  --grn-btn-gold-bg: linear-gradient(135deg, #10B981 0%, #059669 50%, #065F46 100%);
+  --grn-btn-gold-hover: linear-gradient(135deg, #34D399 0%, #10B981 50%, #059669 100%);
+  --grn-btn-gold-text: #FFFFFF;
+  --grn-badge-featured-bg: linear-gradient(135deg, #34D399, #059669);
+  --grn-badge-featured-text: #FFFFFF;
+
+  /* Admin portal overrides */
+  --admin-bg: #F0FDF4;
+  --admin-sidebar-bg: #FFFFFF;
+  --admin-card-bg: #FFFFFF;
+  --admin-card-border: #BBF7D0;
+  --admin-gold: #065F46;
+  --admin-gold-light: #059669;
+  --admin-text-main: #06281E;
+  --admin-text-muted: #374151;
+}
+
+/* -------------------------------------------------------------------
+   4. VELVET AMETHYST (REGAL PLUM & ROSE GOLD)
+   ------------------------------------------------------------------- */
+[data-theme="amethyst-purple"] {
+  --theme-name: "amethyst-purple";
+  --grn-gold: #6B21A8;
+  --grn-gold-light: #9333EA;
+  --grn-gold-dark: #581C87;
+  --grn-gold-glow: rgba(107, 33, 168, 0.2);
+
+  --grn-black: #FAF5FF;
+  --grn-black-light: #F3E8FF;
+  --grn-card-bg: #FFFFFF;
+  --grn-card-border: #E9D5FF;
+  --grn-card-hover-border: #9333EA;
+
+  --grn-white: #1E122E;
+  --grn-text-muted: #4B5563;
+  --grn-text-subtle: #6B7280;
+  --grn-border-subtle: #E9D5FF;
+
+  --grn-topbar-bg: #F5EBFC;
+  --grn-navbar-bg: #FFFFFF;
+  --grn-footer-bg: #F5EBFC;
+  --grn-input-bg: #FFFFFF;
+  --grn-input-border: #D8B4FE;
+  --grn-input-text: #1E122E;
+  --grn-btn-gold-bg: linear-gradient(135deg, #A855F7 0%, #9333EA 50%, #6B21A8 100%);
+  --grn-btn-gold-hover: linear-gradient(135deg, #C084FC 0%, #A855F7 50%, #7E22CE 100%);
+  --grn-btn-gold-text: #FFFFFF;
+  --grn-badge-featured-bg: linear-gradient(135deg, #C084FC, #9333EA);
+  --grn-badge-featured-text: #FFFFFF;
+
+  /* Admin portal overrides */
+  --admin-bg: #FAF5FF;
+  --admin-sidebar-bg: #FFFFFF;
+  --admin-card-bg: #FFFFFF;
+  --admin-card-border: #E9D5FF;
+  --admin-gold: #6B21A8;
+  --admin-gold-light: #9333EA;
+  --admin-text-main: #1E122E;
+  --admin-text-muted: #4B5563;
+}
+
+/* -------------------------------------------------------------------
+   5. PLATINUM PEARL (EXECUTIVE MODERN LIGHT)
+   ------------------------------------------------------------------- */
+[data-theme="executive-light"] {
+  --theme-name: "executive-light";
+  --grn-gold: #1D4ED8;
+  --grn-gold-light: #3B82F6;
+  --grn-gold-dark: #1E3A8A;
+  --grn-gold-glow: rgba(29, 78, 216, 0.2);
+
+  --grn-black: #F8FAFC;
+  --grn-black-light: #F1F5F9;
+  --grn-card-bg: #FFFFFF;
+  --grn-card-border: #E2E8F0;
+  --grn-card-hover-border: #3B82F6;
+
+  --grn-white: #0F172A;
+  --grn-text-muted: #64748B;
+  --grn-text-subtle: #94A3B8;
+  --grn-border-subtle: #E2E8F0;
+
+  --grn-topbar-bg: #F1F5F9;
+  --grn-navbar-bg: rgba(255, 255, 255, 0.98);
+  --grn-footer-bg: #F1F5F9;
+  --grn-input-bg: #FFFFFF;
+  --grn-input-border: #CBD5E1;
+  --grn-input-text: #0F172A;
+  --grn-btn-gold-bg: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 50%, #1E40AF 100%);
+  --grn-btn-gold-hover: linear-gradient(135deg, #60A5FA 0%, #2563EB 50%, #1D4ED8 100%);
+  --grn-btn-gold-text: #FFFFFF;
+  --grn-badge-featured-bg: linear-gradient(135deg, #F59E0B, #D97706);
+  --grn-badge-featured-text: #FFFFFF;
+
+  /* Admin portal overrides */
+  --admin-bg: #F8FAFC;
+  --admin-sidebar-bg: #F1F5F9;
+  --admin-card-bg: #FFFFFF;
+  --admin-card-border: #E2E8F0;
+  --admin-gold: #1D4ED8;
+  --admin-gold-light: #3B82F6;
+  --admin-text-main: #0F172A;
+  --admin-text-muted: #64748B;
+}
+
+/* Light Theme Element Overrides */
+[data-theme="executive-light"] body {
+  background-color: var(--grn-black) !important;
+  color: #1E293B !important;
+}
+
+[data-theme="executive-light"] .navbar-grn {
+  background-color: #FFFFFF !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="executive-light"] .navbar-grn .nav-link {
+  color: #1E293B !important;
+}
+
+[data-theme="executive-light"] .navbar-grn .nav-link:hover,
+[data-theme="executive-light"] .navbar-grn .nav-link.active {
+  color: var(--grn-gold) !important;
+}
+
+[data-theme="executive-light"] .hero-title,
+[data-theme="executive-light"] h1:not(.footer-title),
+[data-theme="executive-light"] h2:not(.footer-title),
+[data-theme="executive-light"] h3:not(.footer-title),
+[data-theme="executive-light"] h4:not(.footer-title),
+[data-theme="executive-light"] .font-heading:not(.footer-title) {
+  color: #0F172A !important;
+}
+
+[data-theme="executive-light"] .hero-subtitle {
+  color: #475569 !important;
+}
+
+[data-theme="executive-light"] .hero-section {
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.88) 0%, rgba(241, 245, 249, 0.95) 100%),
+              url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=85');
+}
+
+[data-theme="executive-light"] .search-card {
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08) !important;
+}
+
+[data-theme="executive-light"] .form-control-custom,
+[data-theme="executive-light"] .form-select-custom,
+[data-theme="executive-light"] .modal-admin .form-control,
+[data-theme="executive-light"] .modal-admin .form-select {
+  background-color: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+[data-theme="executive-light"] .property-title,
+[data-theme="executive-light"] .property-title a {
+  color: #0F172A !important;
+}
+
+[data-theme="executive-light"] .property-features {
+  background: #F1F5F9 !important;
+  border-color: #E2E8F0 !important;
+}
+
+[data-theme="executive-light"] .feature-item span {
+  color: #334155 !important;
+}
+
+[data-theme="executive-light"] .property-desc-short {
+  color: #475569 !important;
+}
+
+[data-theme="executive-light"] .property-card {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="executive-light"] .property-card:hover {
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12) !important;
+}
+
+[data-theme="executive-light"] .property-price-tag {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: var(--grn-gold) !important;
+  border-color: #CBD5E1 !important;
+}
+
+[data-theme="executive-light"] .badge-purpose {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: var(--grn-gold) !important;
+  border-color: #CBD5E1 !important;
+}
+
+[data-theme="executive-light"] .admin-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="executive-light"] .admin-card-header {
+  background: #F8FAFC !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+
+[data-theme="executive-light"] .admin-card-title {
+  color: #0F172A !important;
+}
+
+[data-theme="executive-light"] .admin-navbar {
+  background-color: #FFFFFF !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+
+[data-theme="executive-light"] .admin-nav-link {
+  color: #334155 !important;
+}
+
+[data-theme="executive-light"] .admin-table th {
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
+  border-bottom: 1px solid #CBD5E1 !important;
+}
+
+[data-theme="executive-light"] .admin-table td {
+  color: #1E293B !important;
+  border-bottom: 1px solid #F1F5F9 !important;
+}
+
+[data-theme="executive-light"] .admin-table tr:hover td {
+  background-color: rgba(29, 78, 216, 0.04) !important;
+}
+
+[data-theme="executive-light"] .stat-card {
+  background: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="executive-light"] .stat-number {
+  color: #0F172A !important;
+}
+
+[data-theme="executive-light"] .modal-content,
+[data-theme="executive-light"] .modal-admin .modal-content,
+[data-theme="executive-light"] .modal-content-grn {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+
+[data-theme="executive-light"] .modal-header,
+[data-theme="executive-light"] .modal-admin .modal-header {
+  background-color: #F8FAFC !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+
+[data-theme="executive-light"] .modal-footer,
+[data-theme="executive-light"] .modal-admin .modal-footer {
+  background-color: #F8FAFC !important;
+  border-top: 1px solid #E2E8F0 !important;
+}
+
+[data-theme="executive-light"] .btn-close {
+  filter: none !important;
+}
+
+[data-theme="executive-light"] .dropdown-menu {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="executive-light"] .dropdown-item {
+  color: #1E293B !important;
+}
+
+[data-theme="executive-light"] .dropdown-item:hover {
+  background-color: #F1F5F9 !important;
+  color: var(--grn-gold) !important;
+}
+
+/* -------------------------------------------------------------------
+   6. MIDNIGHT & IVORY PROFESSIONAL THEME
+   - Deep Navy (#172033) for dark sections with white text
+   - Warm Ivory (#F4F1EA) for light sections with black/navy text
+   - Champagne Gold (#D6AD60) for highlights and buttons
+   ------------------------------------------------------------------- */
+[data-theme="midnight-ivory"] {
+  --theme-name: "midnight-ivory";
+  --grn-gold: #D6AD60;
+  --grn-gold-light: #E5C583;
+  --grn-gold-dark: #B88E3E;
+  --grn-gold-glow: rgba(214, 173, 96, 0.28);
+
+  /* Warm Ivory Body & Crisp Cards */
+  --grn-black: #F4F1EA;
+  --grn-black-light: #EDE7DC;
+  --grn-card-bg: #FFFFFF;
+  --grn-card-border: #E0D9CC;
+  --grn-card-hover-border: #D6AD60;
+
+  /* Deep Navy Text for light sections */
+  --grn-white: #172033;
+  --grn-text-muted: #556070;
+  --grn-text-subtle: #7A8699;
+  --grn-border-subtle: #E0D9CC;
+
+  /* Deep Navy Sections */
+  --grn-topbar-bg: #101624;
+  --grn-navbar-bg: #172033;
+  --grn-footer-bg: #172033;
+  --grn-input-bg: #FFFFFF;
+  --grn-input-border: #CBD5E1;
+  --grn-input-text: #172033;
+  --grn-btn-gold-bg: linear-gradient(135deg, #E5C583 0%, #D6AD60 50%, #B88E3E 100%);
+  --grn-btn-gold-hover: linear-gradient(135deg, #F0D59E 0%, #E2BA70 50%, #C99D48 100%);
+  --grn-btn-gold-text: #172033;
+  --grn-badge-featured-bg: linear-gradient(135deg, #E5C583, #D6AD60);
+  --grn-badge-featured-text: #172033;
+  --grn-shadow-gold: 0 10px 25px rgba(214, 173, 96, 0.22);
+  --grn-shadow-dark: 0 10px 30px rgba(23, 32, 51, 0.08);
+
+  /* Admin portal overrides */
+  --admin-bg: #F4F1EA;
+  --admin-sidebar-bg: #EDE7DC;
+  --admin-card-bg: #FFFFFF;
+  --admin-card-border: #E0D9CC;
+  --admin-gold: #D6AD60;
+  --admin-gold-light: #E5C583;
+  --admin-text-main: #172033;
+  --admin-text-muted: #556070;
+}
+
+/* Midnight & Ivory: Contrast & Element Overrides */
+[data-theme="midnight-ivory"] body,
+[data-theme="midnight-ivory"] .admin-body {
+  background-color: #F4F1EA !important;
+  color: #172033 !important;
+}
+
+/* Header & Top Bar: Clean Ivory & Deep Navy Text */
+[data-theme="midnight-ivory"] .top-bar {
+  background-color: #EDE7DC !important;
+  color: #172033 !important;
+  border-bottom: 1px solid #E0D9CC !important;
+}
+
+[data-theme="midnight-ivory"] .top-bar a {
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .top-bar a:hover {
+  color: #B88E3E !important;
+}
+
+[data-theme="midnight-ivory"] .navbar-grn {
+  background-color: #FFFFFF !important;
+  border-bottom: 1px solid #E0D9CC !important;
+  box-shadow: 0 4px 15px rgba(23, 32, 51, 0.05) !important;
+}
+
+[data-theme="midnight-ivory"] .navbar-grn .nav-link {
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .navbar-grn .nav-link:hover,
+[data-theme="midnight-ivory"] .navbar-grn .nav-link.active {
+  color: #B88E3E !important;
+}
+
+[data-theme="midnight-ivory"] .navbar-grn .nav-link::after {
+  background: #D6AD60 !important;
+}
+
+[data-theme="midnight-ivory"] .admin-navbar {
+  background-color: #FFFFFF !important;
+  border-bottom: 1px solid #E0D9CC !important;
+  box-shadow: 0 4px 15px rgba(23, 32, 51, 0.04) !important;
+}
+
+[data-theme="midnight-ivory"] .admin-nav-link {
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .admin-nav-link:hover,
+[data-theme="midnight-ivory"] .admin-nav-link.active {
+  color: #B88E3E !important;
+  background: rgba(214, 173, 96, 0.16) !important;
+}
+
+[data-theme="midnight-ivory"] .hero-section {
+  background: linear-gradient(180deg, rgba(244, 241, 234, 0.92) 0%, rgba(237, 231, 220, 0.96) 100%),
+              url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=85');
+}
+
+[data-theme="midnight-ivory"] .hero-title {
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .hero-subtitle {
+  color: #475569 !important;
+}
+
+[data-theme="midnight-ivory"] .hero-badge {
+  background: rgba(214, 173, 96, 0.18) !important;
+  border-color: rgba(214, 173, 96, 0.45) !important;
+  color: #B88E3E !important;
+}
+
+[data-theme="midnight-ivory"] .footer-grn {
+  background-color: #F4F1EA !important;
+  border-top: 1px solid #E0D9CC !important;
+  color: #475569 !important;
+}
+
+[data-theme="midnight-ivory"] .footer-title {
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .footer-title::after {
+  background: #D6AD60 !important;
+}
+
+[data-theme="midnight-ivory"] .footer-links a {
+  color: #475569 !important;
+}
+
+[data-theme="midnight-ivory"] .footer-links a:hover {
+  color: #B88E3E !important;
+}
+
+[data-theme="midnight-ivory"] .footer-contact-item strong {
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .mobile-call-bar {
+  background-color: #FFFFFF !important;
+  border-top: 1px solid #E0D9CC !important;
+}
+
+/* Light Sections: Warm Ivory (#F4F1EA) & Crisp White (#FFFFFF) Cards with Dark Navy/Black Text (#172033) */
+[data-theme="midnight-ivory"] h1:not(.hero-title):not(.footer-title),
+[data-theme="midnight-ivory"] h2:not(.footer-title),
+[data-theme="midnight-ivory"] h3:not(.footer-title),
+[data-theme="midnight-ivory"] h4:not(.footer-title),
+[data-theme="midnight-ivory"] h5,
+[data-theme="midnight-ivory"] h6,
+[data-theme="midnight-ivory"] .font-heading:not(.hero-title):not(.footer-title) {
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] p,
+[data-theme="midnight-ivory"] .text-white:not(.navbar-grn *):not(.top-bar *):not(.footer-grn *):not(.hero-section *):not(.admin-navbar *):not(.admin-table th):not(.modal-header *) {
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .text-muted {
+  color: #556070 !important;
+}
+
+/* Cards & Surface Components */
+[data-theme="midnight-ivory"] .property-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E0D9CC !important;
+  box-shadow: 0 4px 15px rgba(23, 32, 51, 0.05);
+}
+
+[data-theme="midnight-ivory"] .property-card:hover {
+  border-color: #D6AD60 !important;
+  box-shadow: 0 16px 32px rgba(23, 32, 51, 0.12) !important;
+}
+
+[data-theme="midnight-ivory"] .property-title,
+[data-theme="midnight-ivory"] .property-title a {
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .property-title a:hover {
+  color: #B88E3E !important;
+}
+
+[data-theme="midnight-ivory"] .property-desc-short {
+  color: #4B5563 !important;
+}
+
+[data-theme="midnight-ivory"] .property-location {
+  color: #556070 !important;
+}
+
+[data-theme="midnight-ivory"] .property-category {
+  color: #B88E3E !important;
+}
+
+[data-theme="midnight-ivory"] .property-features {
+  background: #F4F1EA !important;
+  border: 1px solid #E0D9CC !important;
+}
+
+[data-theme="midnight-ivory"] .feature-item span {
+  color: #172033 !important;
+  font-weight: 600;
+}
+
+[data-theme="midnight-ivory"] .feature-item i {
+  color: #B88E3E !important;
+}
+
+[data-theme="midnight-ivory"] .property-price-tag {
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #B88E3E !important;
+  border-color: #D6AD60 !important;
+}
+
+[data-theme="midnight-ivory"] .badge-purpose {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #B88E3E !important;
+  border-color: #D6AD60 !important;
+}
+
+[data-theme="midnight-ivory"] .search-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E0D9CC !important;
+  box-shadow: 0 15px 35px rgba(23, 32, 51, 0.08) !important;
+}
+
+[data-theme="midnight-ivory"] .search-tabs .nav-link {
+  color: #556070 !important;
+}
+
+[data-theme="midnight-ivory"] .search-tabs .nav-link.active {
+  background: #D6AD60 !important;
+  color: #172033 !important;
+  font-weight: 700;
+}
+
+[data-theme="midnight-ivory"] .form-label-custom {
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .form-control-custom,
+[data-theme="midnight-ivory"] .form-select-custom,
+[data-theme="midnight-ivory"] .modal-admin .form-control,
+[data-theme="midnight-ivory"] .modal-admin .form-select,
+[data-theme="midnight-ivory"] .form-control,
+[data-theme="midnight-ivory"] .form-select {
+  background-color: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .form-control:focus,
+[data-theme="midnight-ivory"] .form-select:focus,
+[data-theme="midnight-ivory"] .form-control-custom:focus,
+[data-theme="midnight-ivory"] .form-select-custom:focus {
+  border-color: #D6AD60 !important;
+  box-shadow: 0 0 0 3px rgba(214, 173, 96, 0.25) !important;
+}
+
+[data-theme="midnight-ivory"] .form-control::placeholder,
+[data-theme="midnight-ivory"] .form-control-custom::placeholder {
+  color: #8C98A8 !important;
+}
+
+/* Feature & Category Boxes */
+[data-theme="midnight-ivory"] .feature-box,
+[data-theme="midnight-ivory"] .category-card,
+[data-theme="midnight-ivory"] .testimonial-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E0D9CC !important;
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .category-title,
+[data-theme="midnight-ivory"] .testimonial-author {
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .category-subtitle,
+[data-theme="midnight-ivory"] .testimonial-text {
+  color: #4B5563 !important;
+}
+
+[data-theme="midnight-ivory"] .category-icon-wrapper,
+[data-theme="midnight-ivory"] .feature-box-icon {
+  background: rgba(214, 173, 96, 0.15) !important;
+  border-color: rgba(214, 173, 96, 0.4) !important;
+  color: #B88E3E !important;
+}
+
+[data-theme="midnight-ivory"] .location-pill-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E0D9CC !important;
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .location-pill-card:hover {
+  background: rgba(214, 173, 96, 0.12) !important;
+  border-color: #D6AD60 !important;
+  color: #B88E3E !important;
+}
+
+/* Admin & Dashboard Elements */
+[data-theme="midnight-ivory"] .admin-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E0D9CC !important;
+  box-shadow: 0 4px 15px rgba(23, 32, 51, 0.04);
+}
+
+[data-theme="midnight-ivory"] .admin-card-header {
+  background: #F4F1EA !important;
+  border-bottom: 1px solid #E0D9CC !important;
+}
+
+[data-theme="midnight-ivory"] .admin-card-title {
+  color: #172033 !important;
+}
+
+/* Admin Table with Clean Ivory Header and Dark Text */
+[data-theme="midnight-ivory"] .admin-table th {
+  background-color: #EDE7DC !important;
+  color: #172033 !important;
+  border-bottom: 2px solid #D6AD60 !important;
+}
+
+[data-theme="midnight-ivory"] .admin-table td {
+  background-color: #FFFFFF !important;
+  color: #172033 !important;
+  border-bottom: 1px solid #F0EBE0 !important;
+}
+
+[data-theme="midnight-ivory"] .admin-table tr:hover td {
+  background-color: rgba(214, 173, 96, 0.08) !important;
+}
+
+[data-theme="midnight-ivory"] .stat-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E0D9CC !important;
+  box-shadow: 0 4px 15px rgba(23, 32, 51, 0.04);
+}
+
+[data-theme="midnight-ivory"] .stat-number {
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .stat-label {
+  color: #556070 !important;
+}
+
+/* Modals */
+[data-theme="midnight-ivory"] .modal-content,
+[data-theme="midnight-ivory"] .modal-admin .modal-content,
+[data-theme="midnight-ivory"] .modal-content-grn {
+  background-color: #FFFFFF !important;
+  color: #172033 !important;
+  border: 1px solid #D6AD60 !important;
+  box-shadow: 0 20px 50px rgba(23, 32, 51, 0.25) !important;
+}
+
+[data-theme="midnight-ivory"] .modal-header,
+[data-theme="midnight-ivory"] .modal-admin .modal-header {
+  background-color: #EDE7DC !important;
+  color: #172033 !important;
+  border-bottom: 1px solid #D6AD60 !important;
+}
+
+[data-theme="midnight-ivory"] .modal-header .modal-title {
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .modal-header .btn-close {
+  filter: none !important;
+}
+
+[data-theme="midnight-ivory"] .modal-footer,
+[data-theme="midnight-ivory"] .modal-admin .modal-footer {
+  background-color: #F4F1EA !important;
+  border-top: 1px solid #E0D9CC !important;
+}
+
+[data-theme="midnight-ivory"] .dropdown-menu {
+  background-color: #FFFFFF !important;
+  color: #172033 !important;
+  border: 1px solid #E0D9CC !important;
+  box-shadow: 0 10px 25px rgba(23, 32, 51, 0.12) !important;
+}
+
+[data-theme="midnight-ivory"] .dropdown-item {
+  color: #172033 !important;
+}
+
+[data-theme="midnight-ivory"] .dropdown-item:hover {
+  background-color: #F4F1EA !important;
+  color: #B88E3E !important;
+}
+
+[data-theme="midnight-ivory"] .text-gold {
+  color: #B88E3E !important;
+}
+
+[data-theme="midnight-ivory"] .navbar-grn .text-gold,
+[data-theme="midnight-ivory"] .top-bar .text-gold,
+[data-theme="midnight-ivory"] .footer-grn .text-gold,
+[data-theme="midnight-ivory"] .admin-navbar .text-gold,
+[data-theme="midnight-ivory"] .modal-header .text-gold,
+[data-theme="midnight-ivory"] .property-price-tag .text-gold {
+  color: #D6AD60 !important;
+}
+
+[data-theme="midnight-ivory"] .border-gold {
+  border-color: #D6AD60 !important;
+}
+
+[data-theme="midnight-ivory"] .gold-divider,
+[data-theme="midnight-ivory"] .gold-divider-start {
+  background: linear-gradient(90deg, #D6AD60, transparent) !important;
+}
+
+/* -------------------------------------------------------------------
+   COMMON THEME ACCENT & BUTTON UTILITIES
+   ------------------------------------------------------------------- */
+.bg-gold {
+  background: var(--grn-btn-gold-bg) !important;
+  color: var(--grn-btn-gold-text) !important;
+}
+
+.btn-gold {
+  background: var(--grn-btn-gold-bg) !important;
+  color: var(--grn-btn-gold-text) !important;
+  box-shadow: 0 4px 15px var(--grn-gold-glow) !important;
+}
+
+.btn-gold:hover {
+  background: var(--grn-btn-gold-hover) !important;
+  color: var(--grn-btn-gold-text) !important;
+  box-shadow: 0 8px 25px var(--grn-gold-glow) !important;
+}
+
+.btn-outline-gold {
+  color: var(--grn-gold) !important;
+  border-color: var(--grn-gold) !important;
+}
+
+.btn-outline-gold:hover {
+  background: var(--grn-gold-glow) !important;
+  color: var(--grn-gold-light) !important;
+  border-color: var(--grn-gold-light) !important;
+}
+
+.badge-featured {
+  background: var(--grn-badge-featured-bg) !important;
+  color: var(--grn-badge-featured-text) !important;
+}
+
+.gold-divider,
+.gold-divider-start {
+  background: linear-gradient(90deg, var(--grn-gold), transparent) !important;
+}
+
+/* -------------------------------------------------------------------
+   THEME SELECTOR DROPDOWN & FLOATING PICKER UI
+   ------------------------------------------------------------------- */
+.theme-dropdown .dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--grn-card-border);
+  color: var(--grn-gold-light) !important;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.theme-dropdown .dropdown-toggle:hover {
+  background: var(--grn-gold-glow);
+  border-color: var(--grn-gold);
+}
+
+.theme-menu {
+  min-width: 260px;
+  background-color: var(--grn-card-bg);
+  border: 1px solid var(--grn-card-border);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.55);
+}
+
+.theme-choice {
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  border-radius: 8px !important;
+  transition: all 0.2s ease;
+  color: var(--grn-white);
+  padding: 8px 12px;
+}
+
+.theme-choice:hover {
+  background-color: var(--grn-gold-glow) !important;
+  color: var(--grn-gold-light) !important;
+}
+
+.theme-choice.active {
+  background-color: var(--grn-gold-glow) !important;
+  border: 1px solid var(--grn-gold) !important;
+}
+
+.theme-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Floating Theme Switcher Button (Bottom Left) */
+.theme-float-btn {
+  position: fixed;
+  bottom: 28px;
+  left: 28px;
+  z-index: 9999;
+}
+
+.theme-float-trigger {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--grn-card-bg);
+  border: 1.5px solid var(--grn-gold);
+  color: var(--grn-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.theme-float-trigger:hover {
+  transform: rotate(45deg) scale(1.08);
+  background: var(--grn-gold);
+  color: var(--grn-btn-gold-text);
+  box-shadow: 0 8px 25px var(--grn-gold-glow);
+}
+
+@media (max-width: 767.98px) {
+  .theme-float-btn {
+    bottom: 74px;
+    left: 16px;
+  }
+  .theme-float-trigger {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+}
+
+/* ===================================================================
+   MANDATORY LIGHT BACKGROUND & SELECT AMENITIES TEXT RULES
+   =================================================================== */
+
+/* Select Amenities Section - Explicit Black Text (#000000) */
+.amenities-section,
+.amenities-section *,
+.amenities-section h5,
+.amenities-section .form-section-title,
+.amenities-section label,
+.amenities-section .form-check-label,
+.amenities-section small,
+.amenities-section p,
+.amenities-section span,
+.amenities-section div,
+.amenities-section input {
+  color: #000000 !important;
+}
+
+/* Ensure no dark backgrounds or white text on light backgrounds */
+.bg-dark,
+.bg-black {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
+.table-dark {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+}
+
+.text-light {
+  color: #334155 !important;
+}
+
+

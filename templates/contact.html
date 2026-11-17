@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us | {{ company_name }} - Pune Office & Advisory{% endblock %}
+
+{% block content %}
+<!-- Banner -->
+<section class="py-5"
+  style="background: linear-gradient(180deg, #07080A 0%, #111318 100%); border-bottom: 1px solid rgba(212, 175, 55, 0.2);">
+  <div class="container py-3">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb small mb-2">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-gold">Home</a></li>
+        <li class="breadcrumb-item active text-white" aria-current="page">Contact Us</li>
+      </ol>
+    </nav>
+    <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Get In Touch</span>
+    <h1 class="font-heading display-5 mb-2">Contact {{ company_name }}</h1>
+    <div class="gold-divider-start"></div>
+    <p class="text-muted mb-0">Visit our Pune office or speak directly with our senior real estate consultants.</p>
+  </div>
+</section>
+
+<!-- Contact Info & Form -->
+<section class="py-5" style="background-color: #0A0B0E;">
+  <div class="container py-4">
+    <div class="row g-5">
+
+      <!-- Contact Info Cards -->
+      <div class="col-lg-5">
+        <div class="d-flex flex-column gap-4">
+
+          <!-- Corporate Office Address -->
+          {% if not contact_settings.corporate_office or contact_settings.corporate_office.is_enabled %}
+          <div class="search-card p-4">
+            <div class="d-flex gap-3">
+              <div class="bg-gold-glow p-3 rounded text-gold fs-4">
+                <i class="{{ contact_settings.corporate_office.icon if contact_settings.corporate_office else 'fas fa-map-marked-alt' }}"></i>
+              </div>
+              <div>
+                <h5 class="font-heading fs-6 text-gold mb-1">{{ contact_settings.corporate_office.label if contact_settings.corporate_office else 'Corporate Office' }}</h5>
+                <p class="text-light mb-1">{{ company_address }}</p>
+                <small class="text-muted d-block"><i class="fas fa-landmark text-gold me-1"></i> Prime Advisory Hub &bull; Pune</small>
+                {% if google_maps_url and (not contact_settings.google_maps_url or contact_settings.google_maps_url.is_enabled) %}
+                <a href="{{ google_maps_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-gold btn-sm mt-2">
+                  <i class="fas fa-directions me-1"></i> Get Directions
+                </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Branch Office Address (if configured & enabled) -->
+          {% if contact_settings.branch_office and contact_settings.branch_office.is_enabled and branch_office %}
+          <div class="search-card p-4">
+            <div class="d-flex gap-3">
+              <div class="bg-gold-glow p-3 rounded text-gold fs-4">
+                <i class="{{ contact_settings.branch_office.icon or 'fas fa-building' }}"></i>
+              </div>
+              <div>
+                <h5 class="font-heading fs-6 text-gold mb-1">{{ contact_settings.branch_office.label or 'Branch Office' }}</h5>
+                <p class="text-light mb-1">{{ branch_office }}</p>
+                <small class="text-muted d-block"><i class="fas fa-map-pin text-gold me-1"></i> Regional Experience Center</small>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Phone & WhatsApp -->
+          {% set phone_enabled = not contact_settings.company_phone or contact_settings.company_phone.is_enabled %}
+          {% set wa_enabled = not contact_settings.company_whatsapp or contact_settings.company_whatsapp.is_enabled %}
+          {% if phone_enabled or wa_enabled %}
+          <div class="search-card p-4">
+            {% if phone_enabled %}
+            <div class="d-flex gap-3 {% if wa_enabled %}mb-3{% endif %}">
+              <div class="bg-gold-glow p-3 rounded text-gold fs-4">
+                <i class="{{ contact_settings.company_phone.icon if contact_settings.company_phone else 'fas fa-phone-alt' }}"></i>
+              </div>
+              <div>
+                <h5 class="font-heading fs-6 text-gold mb-1">{{ contact_settings.company_phone.label if contact_settings.company_phone else 'Call Us' }}</h5>
+                <a href="tel:{{ company_phone_raw }}" class="text-white fw-bold fs-5 d-block">{{ company_phone }}</a>
+                <small class="text-muted">Direct calling & customer helpline desk</small>
+              </div>
+            </div>
+            {% endif %}
+
+            {% if wa_enabled %}
+            <div class="d-flex gap-3 {% if phone_enabled %}pt-3 border-top border-secondary{% endif %}">
+              <div class="bg-gold-glow p-3 rounded text-gold fs-4">
+                <i class="{{ contact_settings.company_whatsapp.icon if contact_settings.company_whatsapp else 'fab fa-whatsapp' }}"></i>
+              </div>
+              <div>
+                <h5 class="font-heading fs-6 text-gold mb-1">{{ contact_settings.company_whatsapp.label if contact_settings.company_whatsapp else 'WhatsApp Desk' }}</h5>
+                <a href="{{ whatsapp_contact_url }}" target="_blank" rel="noopener noreferrer" class="text-white fw-bold fs-5 d-block">{{ company_whatsapp }}</a>
+                <small class="text-muted">Instant brochures, floor plans & cost sheets</small>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <!-- Email & RERA -->
+          {% set email_enabled = not contact_settings.company_email or contact_settings.company_email.is_enabled %}
+          {% set rera_enabled = contact_settings.company_rera and contact_settings.company_rera.is_enabled and company_rera %}
+          {% if email_enabled or rera_enabled %}
+          <div class="search-card p-4">
+            {% if email_enabled %}
+            <div class="d-flex gap-3 {% if rera_enabled %}mb-3{% endif %}">
+              <div class="bg-gold-glow p-3 rounded text-gold fs-4">
+                <i class="{{ contact_settings.company_email.icon if contact_settings.company_email else 'fas fa-envelope' }}"></i>
+              </div>
+              <div>
+                <h5 class="font-heading fs-6 text-gold mb-1">{{ contact_settings.company_email.label if contact_settings.company_email else 'Email Address' }}</h5>
+                <a href="mailto:{{ company_email }}" class="text-white fw-semibold d-block">{{ company_email }}</a>
+                <small class="text-muted">Response guaranteed within 2 hours</small>
+              </div>
+            </div>
+            {% endif %}
+
+            {% if rera_enabled %}
+            <div class="d-flex gap-3 {% if email_enabled %}pt-3 border-top border-secondary{% endif %}">
+              <div class="bg-gold-glow p-3 rounded text-gold fs-4">
+                <i class="{{ contact_settings.company_rera.icon or 'fas fa-shield-alt' }}"></i>
+              </div>
+              <div>
+                <h5 class="font-heading fs-6 text-gold mb-1">{{ contact_settings.company_rera.label or 'MahaRERA Reg. No.' }}</h5>
+                <span class="text-white fw-semibold d-block">{{ company_rera }}</span>
+                <small class="text-muted">Government authorized channel partner</small>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <!-- Working Hours (if enabled) -->
+          {% if contact_settings.working_hours and contact_settings.working_hours.is_enabled and working_hours %}
+          <div class="search-card p-4">
+            <div class="d-flex gap-3">
+              <div class="bg-gold-glow p-3 rounded text-gold fs-4">
+                <i class="{{ contact_settings.working_hours.icon or 'fas fa-clock' }}"></i>
+              </div>
+              <div>
+                <h5 class="font-heading fs-6 text-gold mb-1">{{ contact_settings.working_hours.label or 'Working Hours' }}</h5>
+                <p class="text-white fw-semibold mb-0">{{ working_hours }}</p>
+                <small class="text-muted">Open 7 days a week for property visits</small>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Additional / Custom Contact Information -->
+          {% for item in additional_contact_items %}
+          <div class="search-card p-4">
+            <div class="d-flex gap-3">
+              <div class="bg-gold-glow p-3 rounded text-gold fs-4">
+                <i class="{{ item.icon or 'fas fa-info-circle' }}"></i>
+              </div>
+              <div>
+                <h5 class="font-heading fs-6 text-gold mb-1">{{ item.label }}</h5>
+                {% if item.link_type == 'tel' %}
+                <a href="tel:{{ item.value|clean_phone }}" class="text-white fw-bold fs-5 d-block">{{ item.value }}</a>
+                {% elif item.link_type == 'mailto' %}
+                <a href="mailto:{{ item.value }}" class="text-white fw-semibold d-block">{{ item.value }}</a>
+                {% elif item.link_type == 'url' %}
+                <a href="{{ item.value }}" target="_blank" rel="noopener noreferrer" class="text-gold fw-semibold d-block">
+                  Visit Link <i class="fas fa-external-link-alt ms-1 fa-xs"></i>
+                </a>
+                {% else %}
+                <p class="text-light mb-0">{{ item.value }}</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+
+        </div>
+      </div>
+
+      <!-- Contact Form -->
+      <div class="col-lg-7">
+        <div class="search-card p-4 p-md-5">
+          <span class="text-gold text-uppercase fw-bold letter-spacing-2 small">Send a Message</span>
+          <h3 class="font-heading fs-3 mb-3 text-white">We'd Love to Hear From You</h3>
+          <div class="gold-divider-start"></div>
+          <p class="text-muted small mb-4">
+            Fill in the details below. Our senior property advisor will reach out to schedule an in-person meeting or
+            site tour.
+          </p>
+
+          <form action="{{ url_for('handle_enquiry') }}" method="POST">
+            <input type="hidden" name="enquiry_type" value="Contact Us Page">
+            <input type="hidden" name="website_enquiry_url" value="{{ request.url if request else '' }}"
+              class="enquiry-page-url">
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label-custom">Your Full Name <span class="text-danger">*</span></label>
+                <input type="text" name="name" class="form-control form-control-custom"
+                  placeholder="e.g. Vikramaditya Rao" required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">Mobile Number <span class="text-danger">*</span></label>
+                <input type="tel" name="phone" class="form-control form-control-custom" placeholder="e.g. 9822012345"
+                  required>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">Email Address</label>
+                <input type="email" name="email" class="form-control form-control-custom"
+                  placeholder="name@example.com">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">Subject / Requirement</label>
+                <select name="property_title" class="form-select form-select-custom">
+                  <option value="Residential Property Search">Residential Property Search</option>
+                  <option value="Commercial Office / Retail Enquiry">Commercial Office / Retail Enquiry</option>
+                  <option value="Plot / Villa Investment">Plot / Villa Investment</option>
+                  <option value="Schedule Site Tour">Schedule Site Tour</option>
+                  <option value="Channel Partner Consultation">Channel Partner Consultation</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">Preferred Location</label>
+                <select name="preferred_location" class="form-select form-select-custom">
+                  <option value="">Any Pune Location</option>
+                  {% for loc in pune_locations %}
+                  <option value="{{ loc }}">{{ loc }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label-custom">Budget Range</label>
+                <select name="budget" class="form-select form-select-custom">
+                  <option value="₹50L - ₹80L">₹50 Lakhs - ₹80 Lakhs</option>
+                  <option value="₹80L - ₹1.2 Cr">₹80 Lakhs - ₹1.2 Cr</option>
+                  <option value="₹1.2 Cr - ₹2.5 Cr">₹1.2 Cr - ₹2.5 Cr</option>
+                  <option value="₹2.5 Cr+">Above ₹2.5 Cr</option>
+                </select>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label-custom">Message</label>
+                <textarea name="message" class="form-control form-control-custom" rows="4"
+                  placeholder="How can our team help you? Provide any specific preferences..."></textarea>
+              </div>
+
+              <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-gold w-100 py-3">
+                  <i class="fas fa-paper-plane me-2"></i> Send Message to {{ company_name }}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Google Map Embed & Directions -->
+    {% if not contact_settings.google_maps_url or contact_settings.google_maps_url.is_enabled %}
+    <div class="mt-5 pt-4">
+      <div class="search-card p-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+          <div>
+            <h4 class="font-heading fs-5 mb-0 text-white">
+              <i class="fas fa-map-marker-alt text-gold me-2"></i>Find Our Office on Map
+            </h4>
+            <span class="text-gold-light small">{{ company_address }}</span>
+          </div>
+          {% if google_maps_url %}
+          <a href="{{ google_maps_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-gold btn-sm align-self-start align-self-md-auto">
+            <i class="fas fa-external-link-alt me-1"></i> Open Google Maps & Directions
+          </a>
+          {% endif %}
+        </div>
+        <div class="ratio ratio-21x9 rounded overflow-hidden border border-secondary" style="min-height: 340px;">
+          <iframe
+            src="https://maps.google.com/maps?q={{ (company_address or 'Balewadi High Street, Pune, Maharashtra')|urlencode }}&t=&z=14&ie=UTF8&iwloc=&output=embed"
+            style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}
