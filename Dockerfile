@@ -10,8 +10,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Initialize and verify database structure
-RUN python -c "import database; database.init_db()" || true
+# Initialize database and seed sample demonstration accounts & properties
+RUN python seed_data.py
 
 EXPOSE 8080
 
